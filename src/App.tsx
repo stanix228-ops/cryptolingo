@@ -22,14 +22,12 @@ const DEFAULT_PROGRESS: UserProgress = {
   lastLifeLostTimestamp: null,
   completedLessons: {},
   unlockedModules: ['module-1'],
-  equippedTitle: 'Новичок в крипте 🌱',
+  equippedTitle: 'Junior Trader',
 };
 
 export const App: React.FC = () => {
-  // Splash Reveal screen state
   const [showSplash, setShowSplash] = useState(true);
 
-  // Load progress from localStorage
   const [progress, setProgress] = useState<UserProgress>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -42,12 +40,10 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'lessons' | 'simulator' | 'profile'>('lessons');
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
 
-  // Initialize Telegram WebApp SDK
   useEffect(() => {
     initTelegramApp();
   }, []);
 
-  // Save progress changes
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
@@ -73,7 +69,6 @@ export const App: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Handle Lesson Completion
   const handleCompleteLesson = (score: number, stars: number) => {
     if (!activeLesson) return;
 
@@ -98,7 +93,6 @@ export const App: React.FC = () => {
     setActiveLesson(null);
   };
 
-  // Handle wrong answer / life lost
   const handleLifeLost = () => {
     setProgress((prev) => ({
       ...prev,
@@ -115,13 +109,13 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0D14] text-slate-100 flex flex-col selection:bg-emerald-500/20 font-sans">
-      {/* Intro Splash Video Reveal on App Launch */}
+    <div className="min-h-screen bg-[#06080E] text-slate-100 flex flex-col selection:bg-[#00C076]/20 font-sans">
+      {/* Intro Splash Video on launch */}
       {showSplash && (
         <SplashReveal onComplete={() => setShowSplash(false)} />
       )}
 
-      {/* Persistent Header */}
+      {/* Persistent OKX Header */}
       <Header
         progress={progress}
         onOpenProfile={() => setActiveTab('profile')}
@@ -140,7 +134,7 @@ export const App: React.FC = () => {
                 setActiveLesson(lesson);
               } else {
                 haptic.error();
-                alert('❤️ У вас закончились жизни! Пригласите друга или подождите восстановления.');
+                alert('Лимит попыток исчерпан. Ожидайте автоматического восстановления либо пригласите партнера.');
               }
             }}
           />
@@ -156,7 +150,7 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* Lesson Modal Overlay */}
+      {/* Lesson Modal */}
       {activeLesson && (
         <LessonModal
           lesson={activeLesson}
@@ -166,7 +160,7 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Bottom Tab Navigation */}
+      {/* Bottom Nav */}
       <BottomNav activeTab={activeTab} onChangeTab={setActiveTab} />
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Lesson, StepType } from '../types';
 import { TradingChart } from './TradingChart';
-import { X, ArrowRight, CheckCircle2, AlertCircle, Sparkles, BookOpen, Brain, TrendingUp, Trophy, Star } from 'lucide-react';
+import { X, ArrowRight, CheckCircle2, AlertCircle, BookOpen, Brain, TrendingUp, Award, Zap, Shield, HelpCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { haptic } from '../services/telegram';
 
@@ -36,10 +36,10 @@ export const LessonModal: React.FC<LessonModalProps> = ({
 
   const triggerConfetti = () => {
     confetti({
-      particleCount: 90,
-      spread: 80,
+      particleCount: 70,
+      spread: 70,
       origin: { y: 0.6 },
-      colors: ['#00F59B', '#38BDF8', '#FFD200', '#A855F7'],
+      colors: ['#00C076', '#38BDF8', '#F0B90B', '#FFFFFF'],
     });
   };
 
@@ -86,28 +86,28 @@ export const LessonModal: React.FC<LessonModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-[#06080E] flex flex-col justify-between overflow-hidden animate-fadeIn select-none">
       {/* Top Header Navigation */}
-      <div className="px-4 py-3 border-b border-[#1E293B] bg-[#06080E]/90 backdrop-blur-xl flex items-center justify-between gap-3">
+      <div className="px-4 py-3 border-b border-[#1E293B] bg-[#06080E]/95 backdrop-blur-xl flex items-center justify-between gap-3">
         <button
           onClick={onClose}
-          className="w-10 h-10 rounded-full bg-[#0F1420] border border-[#1E293B] flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+          className="w-9 h-9 rounded-xl bg-[#0F1420] border border-[#1E293B] flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Glowing Progress Bar */}
-        <div className="flex-1 h-3 bg-[#0F1420] rounded-full border border-[#1E293B] overflow-hidden">
+        {/* Progress Bar */}
+        <div className="flex-1 h-2 bg-[#0F1420] rounded-full border border-[#1E293B] overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-[#00F59B] via-[#38BDF8] to-[#FFD200] rounded-full transition-all duration-300 shadow-sm"
+            className="h-full bg-gradient-to-r from-[#00C076] to-[#38BDF8] rounded-full transition-all duration-300 shadow-sm"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
 
         {/* Step Indicator */}
-        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300 px-3 py-1 rounded-full bg-[#0F1420] border border-[#1E293B]">
+        <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-slate-300 px-3 py-1 rounded-xl bg-[#0F1420] border border-[#1E293B]">
           {currentStep === 'theory' && <BookOpen className="w-3.5 h-3.5 text-[#38BDF8]" />}
-          {currentStep === 'quiz' && <Brain className="w-3.5 h-3.5 text-[#FFD200]" />}
-          {currentStep === 'practice' && <TrendingUp className="w-3.5 h-3.5 text-[#00F59B]" />}
-          <span className="capitalize">{currentStep === 'theory' ? 'Теория' : currentStep === 'quiz' ? 'Тест' : 'График'}</span>
+          {currentStep === 'quiz' && <Brain className="w-3.5 h-3.5 text-[#F0B90B]" />}
+          {currentStep === 'practice' && <TrendingUp className="w-3.5 h-3.5 text-[#00C076]" />}
+          <span className="uppercase">{currentStep === 'theory' ? 'Теория' : currentStep === 'quiz' ? 'Тест' : 'Терминал'}</span>
         </div>
       </div>
 
@@ -118,30 +118,30 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           <div className="w-full max-w-md flex flex-col gap-4 animate-fadeIn pb-6">
             {/* Title Badge */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#00F59B] bg-[#00F59B]/10 px-3 py-1 rounded-full w-fit border border-[#00F59B]/30">
+              <span className="text-[10px] font-mono font-black uppercase tracking-widest text-[#00C076] bg-[#00C076]/10 px-2.5 py-1 rounded-md w-fit border border-[#00C076]/30">
                 {lesson.theory.badge}
               </span>
-              <h1 className="text-xl font-black text-white leading-tight">
+              <h1 className="text-lg font-black text-white leading-tight">
                 {lesson.theory.title}
               </h1>
             </div>
 
-            {/* Theory Cards */}
-            <div className="flex flex-col gap-3.5">
+            {/* Theory Points */}
+            <div className="flex flex-col gap-3">
               {lesson.theory.points.map((pt, idx) => (
                 <div
                   key={idx}
-                  className="p-4 rounded-2xl bg-[#0F1420] border border-[#1E293B] shadow-lg flex flex-col gap-2 relative overflow-hidden"
+                  className="p-4 rounded-2xl bg-[#0F1420] border border-[#1E293B] shadow-lg flex flex-col gap-2 relative"
                 >
-                  <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                  <h3 className="text-xs font-bold text-slate-100 flex items-center gap-2">
                     <span
-                      className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                      className={`w-2 h-2 rounded-full shrink-0 ${
                         pt.badgeType === 'bull'
-                          ? 'bg-[#00F59B]'
+                          ? 'bg-[#00C076]'
                           : pt.badgeType === 'bear'
-                          ? 'bg-[#FF3366]'
+                          ? 'bg-[#F6465D]'
                           : pt.badgeType === 'warning'
-                          ? 'bg-[#FFD200]'
+                          ? 'bg-[#F0B90B]'
                           : 'bg-[#38BDF8]'
                       }`}
                     />
@@ -149,17 +149,17 @@ export const LessonModal: React.FC<LessonModalProps> = ({
                   </h3>
                   <p className="text-xs text-slate-300 leading-relaxed">{pt.text}</p>
                   {pt.highlight && (
-                    <div className="mt-1 px-3 py-2 rounded-xl bg-[#00F59B]/10 border border-[#00F59B]/20 text-[#00F59B] text-xs font-bold leading-snug">
-                      💡 {pt.highlight}
+                    <div className="mt-1 px-3 py-2 rounded-xl bg-[#00C076]/10 border border-[#00C076]/20 text-[#00C076] text-xs font-bold leading-snug">
+                      Инсайт: {pt.highlight}
                     </div>
                   )}
                 </div>
               ))}
             </div>
 
-            {/* Author Quote (Gerchik Gold Box) */}
+            {/* Author Quote */}
             {lesson.theory.authorQuote && (
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#FFD200]/10 via-[#0F1420] to-transparent border-l-4 border-[#FFD200] text-xs italic text-amber-200 shadow-md">
+              <div className="p-4 rounded-2xl bg-[#121725] border-l-2 border-[#F0B90B] text-xs italic text-slate-300">
                 {lesson.theory.authorQuote}
               </div>
             )}
@@ -168,19 +168,19 @@ export const LessonModal: React.FC<LessonModalProps> = ({
 
         {/* STEP 2: QUIZ */}
         {currentStep === 'quiz' && (
-          <div className="w-full max-w-md flex flex-col gap-5 animate-fadeIn pb-6">
+          <div className="w-full max-w-md flex flex-col gap-4 animate-fadeIn pb-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-[#FFD200] bg-[#FFD200]/10 px-3 py-1 rounded-full border border-[#FFD200]/20">
+              <span className="text-[11px] font-mono font-bold text-[#F0B90B] bg-[#F0B90B]/10 px-2.5 py-1 rounded-md border border-[#F0B90B]/20">
                 Вопрос {currentQuizIdx + 1} из {lesson.quiz.length}
               </span>
             </div>
 
-            <h2 className="text-lg font-black text-white leading-snug">
+            <h2 className="text-base font-black text-white leading-snug">
               {lesson.quiz[currentQuizIdx].question}
             </h2>
 
-            {/* Quiz Choices */}
-            <div className="flex flex-col gap-3">
+            {/* Options */}
+            <div className="flex flex-col gap-2.5">
               {lesson.quiz[currentQuizIdx].options.map((opt, oIdx) => {
                 const isSelected = selectedQuizOption === oIdx;
                 const isCorrectOption = oIdx === lesson.quiz[currentQuizIdx].correctIndex;
@@ -188,12 +188,12 @@ export const LessonModal: React.FC<LessonModalProps> = ({
                 let btnStyles = 'bg-[#0F1420] border-[#1E293B] text-slate-200 hover:border-slate-700';
 
                 if (isSelected && !isAnswerChecked) {
-                  btnStyles = 'bg-[#38BDF8]/20 border-[#38BDF8] text-[#38BDF8] ring-2 ring-[#38BDF8]/40 shadow-lg';
+                  btnStyles = 'bg-[#38BDF8]/15 border-[#38BDF8] text-[#38BDF8]';
                 } else if (isAnswerChecked) {
                   if (isCorrectOption) {
-                    btnStyles = 'bg-[#00F59B]/20 border-[#00F59B] text-[#00F59B] ring-2 ring-[#00F59B]/40 shadow-lg';
+                    btnStyles = 'bg-[#00C076]/15 border-[#00C076] text-[#00C076]';
                   } else if (isSelected && !isCorrectOption) {
-                    btnStyles = 'bg-[#FF3366]/20 border-[#FF3366] text-[#FF3366] ring-2 ring-[#FF3366]/40 shadow-lg';
+                    btnStyles = 'bg-[#F6465D]/15 border-[#F6465D] text-[#F6465D]';
                   }
                 }
 
@@ -210,27 +210,27 @@ export const LessonModal: React.FC<LessonModalProps> = ({
                   >
                     <span>{opt}</span>
                     {isAnswerChecked && isCorrectOption && (
-                      <CheckCircle2 className="w-5 h-5 text-[#00F59B] shrink-0 ml-2" />
+                      <CheckCircle2 className="w-4 h-4 text-[#00C076] shrink-0 ml-2" />
                     )}
                     {isAnswerChecked && isSelected && !isCorrectOption && (
-                      <AlertCircle className="w-5 h-5 text-[#FF3366] shrink-0 ml-2" />
+                      <AlertCircle className="w-4 h-4 text-[#F6465D] shrink-0 ml-2" />
                     )}
                   </button>
                 );
               })}
             </div>
 
-            {/* Explanation Feedback Card */}
+            {/* Explanation Feedback */}
             {isAnswerChecked && (
               <div
-                className={`p-4 rounded-2xl border text-xs leading-relaxed animate-fadeIn shadow-lg ${
+                className={`p-4 rounded-2xl border text-xs leading-relaxed animate-fadeIn ${
                   isCorrect
-                    ? 'bg-[#00F59B]/10 border-[#00F59B]/40 text-emerald-200'
-                    : 'bg-[#FF3366]/10 border-[#FF3366]/40 text-rose-200'
+                    ? 'bg-[#00C076]/10 border-[#00C076]/30 text-emerald-200'
+                    : 'bg-[#F6465D]/10 border-[#F6465D]/30 text-rose-200'
                 }`}
               >
-                <div className="font-extrabold mb-1 flex items-center gap-1.5">
-                  {isCorrect ? '✨ Абсолютно верно!' : '⚠️ Пояснение к вопросу:'}
+                <div className="font-mono font-bold mb-1">
+                  {isCorrect ? 'РЕЗУЛЬТАТ: ВЕРНО' : 'РЕЗУЛЬТАТ: ОШИБКА'}
                 </div>
                 {lesson.quiz[currentQuizIdx].explanation}
               </div>
@@ -238,22 +238,22 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           </div>
         )}
 
-        {/* STEP 3: INTERACTIVE CHART PRACTICE */}
+        {/* STEP 3: PRACTICE TERMINAL */}
         {currentStep === 'practice' && !isFinished && (
           <div className="w-full max-w-md flex flex-col h-full gap-3 animate-fadeIn">
-            <div className="p-3.5 bg-[#0F1420] border border-[#1E293B] rounded-2xl shadow-md">
-              <span className="text-[10px] font-black uppercase tracking-wider text-[#00F59B] bg-[#00F59B]/10 px-2.5 py-0.5 rounded-full border border-[#00F59B]/20">
-                Тренажер на графике
+            <div className="p-3 bg-[#0F1420] border border-[#1E293B] rounded-2xl">
+              <span className="text-[10px] font-mono font-black uppercase text-[#00C076]">
+                БИРЖЕВОЙ ТЕРМИНАЛ
               </span>
-              <p className="text-xs font-bold text-white mt-1.5 leading-snug">
+              <p className="text-xs font-bold text-white mt-1 leading-snug">
                 {lesson.practice.instruction}
               </p>
               <p className="text-[11px] text-slate-400 mt-1">
-                💡 {lesson.practice.hint}
+                Подсказка: {lesson.practice.hint}
               </p>
             </div>
 
-            {/* TradingView Chart Container */}
+            {/* Chart Container */}
             <div className="flex-1 w-full min-h-[350px]">
               <TradingChart
                 candles={lesson.practice.initialCandles}
@@ -270,49 +270,47 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           </div>
         )}
 
-        {/* STEP 4: VICTORY CELEBRATION */}
+        {/* STEP 4: VICTORY SCREEN */}
         {isFinished && (
           <div className="w-full max-w-md flex flex-col items-center justify-center h-full py-8 text-center animate-fadeIn gap-6">
-            <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-[#FFD200] to-[#F59E0B] flex items-center justify-center text-[#06080E] shadow-2xl shadow-[#FFD200]/30 animate-bounce">
-              <Trophy className="w-12 h-12" />
+            <div className="w-20 h-20 rounded-3xl bg-[#00C076]/10 border border-[#00C076]/30 flex items-center justify-center text-[#00C076] shadow-xl">
+              <Award className="w-10 h-10" />
             </div>
 
             <div>
-              <div className="flex justify-center gap-1.5 mb-2">
-                <Star className="w-6 h-6 fill-[#FFD200] text-[#FFD200]" />
-                <Star className="w-6 h-6 fill-[#FFD200] text-[#FFD200]" />
-                <Star className="w-6 h-6 fill-[#FFD200] text-[#FFD200]" />
-              </div>
-              <h2 className="text-2xl font-black text-white">Уровень пройден!</h2>
+              <span className="text-[11px] font-mono font-bold uppercase text-[#00C076] tracking-wider">
+                КВАЛИФИКАЦИЯ ПОДТВЕРЖДЕНА
+              </span>
+              <h2 className="text-xl font-black text-white mt-1">Урок успешно завершен</h2>
               <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto leading-relaxed">
-                Вы успешно закрепили теорию и выполнили практическое действие на реальных свечах!
+                Практическое задание на графике выполнено в точности по правилам торговой системы.
               </p>
             </div>
 
-            {/* Reward Badges */}
-            <div className="flex gap-4 w-full justify-center">
+            {/* Rewards */}
+            <div className="flex gap-3 w-full justify-center">
               <div className="flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-[#0F1420] border border-[#1E293B]">
-                <Sparkles className="w-5 h-5 text-[#00F59B]" />
+                <Zap className="w-4 h-4 text-[#00C076]" />
                 <div className="text-left">
-                  <div className="text-[10px] text-slate-400 font-semibold">Опыт</div>
-                  <div className="text-base font-black text-white font-mono">+{lesson.xpReward} XP</div>
+                  <div className="text-[10px] text-slate-400 font-mono">ОПЫТ</div>
+                  <div className="text-sm font-black text-white font-mono">+{lesson.xpReward} XP</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-[#0F1420] border border-[#1E293B]">
-                <span className="text-xl">💰</span>
+                <Shield className="w-4 h-4 text-[#F0B90B]" />
                 <div className="text-left">
-                  <div className="text-[10px] text-slate-400 font-semibold">Монеты</div>
-                  <div className="text-base font-black text-[#FFD200] font-mono">+{lesson.coinReward}</div>
+                  <div className="text-[10px] text-slate-400 font-mono">БАЛЛЫ</div>
+                  <div className="text-sm font-black text-[#F0B90B] font-mono">+{lesson.coinReward}</div>
                 </div>
               </div>
             </div>
 
             <button
               onClick={handleFinishLesson}
-              className="w-full py-4 rounded-2xl font-black text-sm btn-3d-bullish mt-4 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider bg-[#00C076] text-[#06080E] mt-4 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#00C076]/20"
             >
-              <span>ПРОДОЛЖИТЬ ПУТЬ</span>
+              <span>ПРОДОЛЖИТЬ ОБУЧЕНИЕ</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -321,16 +319,16 @@ export const LessonModal: React.FC<LessonModalProps> = ({
 
       {/* Bottom Footer Button */}
       {!isFinished && currentStep !== 'practice' && (
-        <div className="p-4 bg-[#06080E]/90 border-t border-[#1E293B] max-w-md mx-auto w-full">
+        <div className="p-4 bg-[#06080E]/95 border-t border-[#1E293B] max-w-md mx-auto w-full">
           {currentStep === 'theory' && (
             <button
               onClick={() => {
                 setCurrentStep('quiz');
                 haptic.medium();
               }}
-              className="w-full py-3.5 rounded-2xl font-black text-sm btn-3d-bullish flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider bg-[#00C076] text-[#06080E] flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#00C076]/20"
             >
-              <span>ПЕРЕЙТИ К ТЕСТУ</span>
+              <span>ПЕРЕЙТИ К ТЕСТИРОВАНИЮ</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           )}
@@ -341,20 +339,20 @@ export const LessonModal: React.FC<LessonModalProps> = ({
                 <button
                   onClick={handleCheckQuiz}
                   disabled={selectedQuizOption === null}
-                  className={`w-full py-3.5 rounded-2xl font-black text-sm transition-all ${
+                  className={`w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all ${
                     selectedQuizOption !== null
-                      ? 'btn-3d-bullish cursor-pointer'
+                      ? 'bg-[#00C076] text-[#06080E] cursor-pointer shadow-lg shadow-[#00C076]/20'
                       : 'bg-[#1E293B] text-slate-500 cursor-not-allowed'
                   }`}
                 >
-                  ПРОВЕРИТЬ ОТВЕТ
+                  ПРОВЕРИТЬ ВЫБОР
                 </button>
               ) : (
                 <button
                   onClick={handleNextQuiz}
-                  className="w-full py-3.5 rounded-2xl font-black text-sm btn-3d-cyan flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider bg-[#38BDF8] text-[#06080E] flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#38BDF8]/20"
                 >
-                  <span>{currentQuizIdx + 1 < lesson.quiz.length ? 'СЛЕДУЮЩИЙ ВОПРОС' : 'ПЕРЕЙТИ К ГРАФИКУ'}</span>
+                  <span>{currentQuizIdx + 1 < lesson.quiz.length ? 'СЛЕДУЮЩИЙ ВОПРОС' : 'ОТКРЫТЬ ТЕРМИНАЛ'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}

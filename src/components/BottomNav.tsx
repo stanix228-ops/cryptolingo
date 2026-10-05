@@ -1,5 +1,5 @@
 import React from 'react';
-import { Map, LineChart, User } from 'lucide-react';
+import { BookOpen, LineChart, User } from 'lucide-react';
 import { haptic } from '../services/telegram';
 
 interface BottomNavProps {
@@ -12,8 +12,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onChangeTab,
 }) => {
   const tabs = [
-    { id: 'lessons', label: 'Уроки', icon: Map },
-    { id: 'simulator', label: 'Тренажер', icon: LineChart },
+    { id: 'lessons', label: 'Академия', icon: BookOpen },
+    { id: 'simulator', label: 'Терминал', icon: LineChart },
     { id: 'profile', label: 'Профиль', icon: User },
   ] as const;
 
@@ -31,22 +31,22 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 haptic.selection();
                 onChangeTab(tab.id);
               }}
-              className={`flex flex-col items-center gap-1 py-1.5 px-5 rounded-2xl transition-all duration-200 cursor-pointer ${
+              className={`flex flex-col items-center gap-1 py-1.5 px-6 rounded-2xl transition-all duration-150 cursor-pointer ${
                 isActive
-                  ? 'text-[#00F59B] font-black'
-                  : 'text-slate-400 hover:text-slate-200 font-bold'
+                  ? 'text-[#00C076] font-bold'
+                  : 'text-slate-400 hover:text-slate-200 font-medium'
               }`}
             >
               <div
-                className={`p-1.5 rounded-xl transition-all duration-200 ${
+                className={`p-1.5 rounded-xl transition-all duration-150 ${
                   isActive
-                    ? 'bg-[#00F59B]/15 text-[#00F59B] scale-110 shadow-lg shadow-[#00F59B]/20'
+                    ? 'bg-[#00C076]/10 text-[#00C076] scale-105'
                     : ''
                 }`}
               >
                 <Icon className="w-5 h-5" />
               </div>
-              <span className="text-[11px] tracking-tight">{tab.label}</span>
+              <span className="text-[10px] font-mono tracking-wider uppercase">{tab.label}</span>
             </button>
           );
         })}
