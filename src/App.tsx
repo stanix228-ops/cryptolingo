@@ -5,8 +5,9 @@ import { LessonModal } from './components/LessonModal';
 import { SimulatorView } from './components/SimulatorView';
 import { ProfileView } from './components/ProfileView';
 import { BottomNav } from './components/BottomNav';
+import { SplashReveal } from './components/SplashReveal';
 import { COURSE_MODULES } from './data/courses';
-import { Lesson, UserProgress } from './types';
+import type { Lesson, UserProgress } from './types';
 import { initTelegramApp, haptic } from './services/telegram';
 
 const STORAGE_KEY = 'cryptolingo_user_progress';
@@ -25,6 +26,9 @@ const DEFAULT_PROGRESS: UserProgress = {
 };
 
 export const App: React.FC = () => {
+  // Splash Reveal screen state
+  const [showSplash, setShowSplash] = useState(true);
+
   // Load progress from localStorage
   const [progress, setProgress] = useState<UserProgress>(() => {
     try {
@@ -112,6 +116,11 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0A0D14] text-slate-100 flex flex-col selection:bg-emerald-500/20 font-sans">
+      {/* Intro Splash Video Reveal on App Launch */}
+      {showSplash && (
+        <SplashReveal onComplete={() => setShowSplash(false)} />
+      )}
+
       {/* Persistent Header */}
       <Header
         progress={progress}
