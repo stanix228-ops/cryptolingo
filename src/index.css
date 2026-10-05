@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #0a0d14;
+    --bg-card: #111622;
+    --bg-card-hover: #171f30;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --accent-yellow: #f59e0b;
+    --accent-blue: #3b82f6;
+    --accent-purple: #8b5cf6;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0e14;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f293d;
+  border-radius: 9999px;
+}
+
+/* Animated glow and pulse effects */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2), inset 0 0 15px rgba(16, 185, 129, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.4), inset 0 0 20px rgba(16, 185, 129, 0.2);
+  }
+}
+
+.glow-emerald {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
+
+/* Duolingo-style 3D Button pressing effect */
+.btn-3d-green {
+  background-color: #10b981;
+  box-shadow: 0 4px 0 #059669;
+  transition: all 0.1s ease;
+}
+.btn-3d-green:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #059669;
+}
+
+.btn-3d-blue {
+  background-color: #3b82f6;
+  box-shadow: 0 4px 0 #2563eb;
+  transition: all 0.1s ease;
+}
+.btn-3d-blue:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #2563eb;
+}
+
+.btn-3d-yellow {
+  background-color: #f59e0b;
+  box-shadow: 0 4px 0 #d97706;
+  transition: all 0.1s ease;
+}
+.btn-3d-yellow:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #d97706;
+}
+
+.btn-3d-dark {
+  background-color: #1e293b;
+  box-shadow: 0 4px 0 #0f172a;
+  transition: all 0.1s ease;
+}
+.btn-3d-dark:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #0f172a;
+}

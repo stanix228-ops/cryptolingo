@@ -1,0 +1,166 @@
+import React, { useState, useEffect } from 'react';
+import { Header } from './components/Header';
+import { LessonPath } from './components/LessonPath';
+import { LessonModal } from './components/LessonModal';
+import { SimulatorView } from './components/SimulatorView';
+import { ProfileView } from './components/ProfileView';
+import { BottomNav } from './components/BottomNav';
+import { COURSE_MODULES } from './data/courses';
+import { Lesson, UserProgress } from './types';
+import { initTelegramApp, haptic } from './services/telegram';
+
+const STORAGE_KEY = 'cryptolingo_user_progress';
+
+const DEFAULT_PROGRESS: UserProgress = {
+  xp: 0,
+  coins: 100,
+  streakDays: 1,
+  lastActiveDate: new Date().toISOString().slice(0, 10),
+  lives: 5,
+  maxLives: 5,
+  lastLifeLostTimestamp: null,
+  completedLessons: {},
+  unlockedModules: ['module-1'],
+  equippedTitle: 'Новичок в крипте 🌱',
+};
+
+export const App: React.FC = () => {
+  // Load progress from localStorage
+  const [progress, setProgress] = useState<UserProgress>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : DEFAULT_PROGRESS;
+    } catch {
+      return DEFAULT_PROGRESS;
+    }
+  });
+
+  const [activeTab, setActiveTab] = useState<'lessons' | 'simulator' | 'profile'>('lessons');
+  const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
+
+  // Initialize Telegram WebApp SDK
+  useEffect(() => {
+    initTelegramApp();
+  }, []);
+
+  // Save progress changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    } catch (e) {
+      console.error('Failed to save user progress', e);
+    }
+  }, [progress]);
+
+  // Handle life regeneration (1 life every 15 minutes)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev.lives < prev.maxLives) {
+          return {
+            ...prev,
+            lives: Math.min(prev.maxLives, prev.lives + 1),
+          };
+        }
+        return prev;
+      });
+    }, 15 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Handle Lesson Completion
+  const handleCompleteLesson = (score: number, stars: number) => {
+    if (!activeLesson) return;
+
+    setProgress((prev) => {
+      const newCompleted = {
+        ...prev.completedLessons,
+        [activeLesson.id]: {
+          stars,
+          bestScore: Math.max(score, prev.completedLessons[activeLesson.id]?.bestScore || 0),
+          completedAt: new Date().toISOString(),
+        },
+      };
+
+      return {
+        ...prev,
+        xp: prev.xp + activeLesson.xpReward,
+        coins: prev.coins + activeLesson.coinReward,
+        completedLessons: newCompleted,
+      };
+    });
+
+    setActiveLesson(null);
+  };
+
+  // Handle wrong answer / life lost
+  const handleLifeLost = () => {
+    setProgress((prev) => ({
+      ...prev,
+      lives: Math.max(0, prev.lives - 1),
+      lastLifeLostTimestamp: Date.now(),
+    }));
+  };
+
+  const handleRefillLives = () => {
+    setProgress((prev) => ({
+      ...prev,
+      lives: prev.maxLives,
+    }));
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0A0D14] text-slate-100 flex flex-col selection:bg-emerald-500/20 font-sans">
+      {/* Persistent Header */}
+      <Header
+        progress={progress}
+        onOpenProfile={() => setActiveTab('profile')}
+        onOpenSimulator={() => setActiveTab('simulator')}
+        activeTab={activeTab}
+      />
+
+      {/* Main Tab Content */}
+      <main className="flex-1 overflow-x-hidden">
+        {activeTab === 'lessons' && (
+          <LessonPath
+            modules={COURSE_MODULES}
+            progress={progress}
+            onSelectLesson={(lesson) => {
+              if (progress.lives > 0) {
+                setActiveLesson(lesson);
+              } else {
+                haptic.error();
+                alert('❤️ У вас закончились жизни! Пригласите друга или подождите восстановления.');
+              }
+            }}
+          />
+        )}
+
+        {activeTab === 'simulator' && <SimulatorView />}
+
+        {activeTab === 'profile' && (
+          <ProfileView
+            progress={progress}
+            onRefillLives={handleRefillLives}
+          />
+        )}
+      </main>
+
+      {/* Lesson Modal Overlay */}
+      {activeLesson && (
+        <LessonModal
+          lesson={activeLesson}
+          onClose={() => setActiveLesson(null)}
+          onComplete={handleCompleteLesson}
+          onLifeLost={handleLifeLost}
+        />
+      )}
+
+      {/* Bottom Tab Navigation */}
+      <BottomNav activeTab={activeTab} onChangeTab={setActiveTab} />
+    </div>
+  );
+};
+
+export default App;
