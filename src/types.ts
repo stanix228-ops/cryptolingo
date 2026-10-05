@@ -83,4 +83,6 @@ export interface UserProgress {
   completedLessons: Record<string, { stars: number; bestScore: number; completedAt: string }>;
   unlockedModules: string[];
   equippedTitle: string;
+  referralCount?: number;
+  isGlossaryUnlocked?: boolean;
 }

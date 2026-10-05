@@ -3,8 +3,9 @@ import { Header } from './components/Header';
 import { LessonPath } from './components/LessonPath';
 import { LessonModal } from './components/LessonModal';
 import { SimulatorView } from './components/SimulatorView';
+import { GlossaryView } from './components/GlossaryView';
 import { ProfileView } from './components/ProfileView';
-import { BottomNav } from './components/BottomNav';
+import { BottomNav, type TabType } from './components/BottomNav';
 import { SplashReveal } from './components/SplashReveal';
 import { COURSE_MODULES } from './data/courses';
 import type { Lesson, UserProgress } from './types';
@@ -23,6 +24,8 @@ const DEFAULT_PROGRESS: UserProgress = {
   completedLessons: {},
   unlockedModules: ['module-1'],
   equippedTitle: 'Junior Trader',
+  referralCount: 0,
+  isGlossaryUnlocked: false,
 };
 
 export const App: React.FC = () => {
@@ -37,7 +40,7 @@ export const App: React.FC = () => {
     }
   });
 
-  const [activeTab, setActiveTab] = useState<'lessons' | 'simulator' | 'profile'>('lessons');
+  const [activeTab, setActiveTab] = useState<TabType>('lessons');
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
 
   useEffect(() => {
@@ -108,8 +111,16 @@ export const App: React.FC = () => {
     }));
   };
 
+  const handleUnlockGlossary = () => {
+    setProgress((prev) => ({
+      ...prev,
+      referralCount: Math.max(1, (prev.referralCount || 0) + 1),
+      isGlossaryUnlocked: true,
+    }));
+  };
+
   return (
-    <div className="min-h-screen bg-[#06080E] text-slate-100 flex flex-col selection:bg-[#00C076]/20 font-sans">
+    <div className="min-h-screen bg-[#06080E] text-slate-100 flex flex-col selection:bg-white/20 font-sans">
       {/* Intro Splash Video on launch */}
       {showSplash && (
         <SplashReveal onComplete={() => setShowSplash(false)} />
@@ -141,6 +152,13 @@ export const App: React.FC = () => {
         )}
 
         {activeTab === 'simulator' && <SimulatorView />}
+
+        {activeTab === 'glossary' && (
+          <GlossaryView
+            progress={progress}
+            onUnlockGlossary={handleUnlockGlossary}
+          />
+        )}
 
         {activeTab === 'profile' && (
           <ProfileView

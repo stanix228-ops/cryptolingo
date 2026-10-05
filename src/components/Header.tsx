@@ -7,7 +7,7 @@ interface HeaderProps {
   progress: UserProgress;
   onOpenProfile: () => void;
   onOpenSimulator: () => void;
-  activeTab: 'lessons' | 'simulator' | 'profile';
+  activeTab: 'lessons' | 'simulator' | 'glossary' | 'profile';
 }
 
 export const Header: React.FC<HeaderProps> = ({
