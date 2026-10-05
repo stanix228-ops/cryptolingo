@@ -15,7 +15,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfile,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-black border-b-2 border-white px-3 py-2.5 select-none transition-all">
+    <header className="sticky top-0 z-40 bg-black border-b border-white/15 px-3 py-2.5 select-none transition-all">
       <div className="max-w-md mx-auto flex items-center justify-between">
         {/* Brand */}
         <button
@@ -25,12 +25,12 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           className="flex items-center gap-2 text-left cursor-pointer"
         >
-          <div className="w-8 h-8 bg-white text-black font-mono font-black text-xs flex items-center justify-center border border-white">
+          <div className="w-7 h-7 bg-white text-black font-mono font-black text-xs flex items-center justify-center border border-white">
             OKX
           </div>
           <div>
             <span className="font-mono font-black text-xs uppercase tracking-wider text-white block leading-tight">
-              CRYPTOLINGO PRO
+              CRYPTOLINGO
             </span>
             <span className="font-mono text-[9px] text-neutral-400 uppercase tracking-widest block">
               SPEC. 2026 // ACADEMY
@@ -41,13 +41,13 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Stats Badges */}
         <div className="flex items-center gap-1.5 font-mono text-[11px]">
           {/* Lives */}
-          <div className="flex items-center gap-1 px-2 py-0.5 border border-neutral-700 bg-neutral-950 text-white font-bold">
+          <div className="flex items-center gap-1 px-2 py-0.5 border border-white/20 bg-neutral-950 text-white font-bold">
             <Heart className="w-3 h-3 text-white fill-white" />
             <span>{progress.lives}</span>
           </div>
 
           {/* Streak */}
-          <div className="flex items-center gap-1 px-2 py-0.5 border border-neutral-700 bg-neutral-950 text-white font-bold">
+          <div className="flex items-center gap-1 px-2 py-0.5 border border-white/20 bg-neutral-950 text-white font-bold">
             <Flame className="w-3 h-3 text-white" />
             <span>{progress.streakDays}D</span>
           </div>

@@ -3,10 +3,10 @@
 @layer base {
   :root {
     --bg-black: #000000;
-    --bg-dark: #080808;
-    --bg-card: #0c0c0c;
-    --border-white: #ffffff;
-    --border-muted: #262626;
+    --bg-dark: #070707;
+    --bg-card: #0a0a0a;
+    --border-subtle: rgba(255, 255, 255, 0.15);
+    --border-accent: rgba(255, 255, 255, 0.35);
     --text-white: #ffffff;
     --text-muted: #888888;
   }
@@ -26,12 +26,13 @@
   }
 }
 
-/* Swiss Monochrome Button System */
+/* Swiss Monochrome Button System with Thin 1px Borders */
 .btn-swiss-primary {
   background-color: #ffffff;
   color: #000000;
   border: 1px solid #ffffff;
   font-weight: 800;
+  font-family: ui-monospace, monospace;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   transition: all 0.1s ease-in-out;
@@ -45,8 +46,9 @@
 .btn-swiss-secondary {
   background-color: #000000;
   color: #ffffff;
-  border: 1px solid #333333;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   font-weight: 700;
+  font-family: ui-monospace, monospace;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   transition: all 0.1s ease-in-out;
@@ -60,12 +62,13 @@
 .btn-swiss-ghost {
   background-color: transparent;
   color: #888888;
-  border: 1px solid #222222;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   font-weight: 600;
+  font-family: ui-monospace, monospace;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .btn-swiss-ghost:hover {
   color: #ffffff;
-  border-color: #555555;
+  border-color: rgba(255, 255, 255, 0.4);
 }

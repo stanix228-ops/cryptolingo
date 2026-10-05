@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createChart, CandlestickSeries, ColorType, LineStyle, IChartApi, ISeriesApi } from 'lightweight-charts';
 import type { ChartCandle, PracticeActionType } from '../types';
-import { Play, TrendingUp, TrendingDown, Target, CheckCircle2, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Play, TrendingUp, TrendingDown, Target, Check, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { haptic } from '../services/telegram';
 
 interface TradingChartProps {
@@ -40,38 +40,38 @@ export const TradingChart: React.FC<TradingChartProps> = ({
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#06080E' },
-        textColor: '#848E9C',
-        fontSize: 11,
+        background: { type: ColorType.Solid, color: '#000000' },
+        textColor: '#888888',
+        fontSize: 10,
       },
       grid: {
-        vertLines: { color: '#141B2D', style: LineStyle.Dotted },
-        horzLines: { color: '#141B2D', style: LineStyle.Dotted },
+        vertLines: { color: '#111111', style: LineStyle.Dotted },
+        horzLines: { color: '#111111', style: LineStyle.Dotted },
       },
       timeScale: {
-        borderColor: '#1E293B',
+        borderColor: 'rgba(255,255,255,0.15)',
         timeVisible: true,
         secondsVisible: false,
       },
       rightPriceScale: {
-        borderColor: '#1E293B',
+        borderColor: 'rgba(255,255,255,0.15)',
         scaleMargins: { top: 0.15, bottom: 0.15 },
       },
       crosshair: {
-        vertLine: { color: '#38BDF8', width: 1, style: LineStyle.Dashed },
-        horzLine: { color: '#38BDF8', width: 1, style: LineStyle.Dashed },
+        vertLine: { color: '#FFFFFF', width: 1, style: LineStyle.Dashed },
+        horzLine: { color: '#FFFFFF', width: 1, style: LineStyle.Dashed },
       },
       handleScroll: true,
       handleScale: true,
     });
 
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: '#00C076',
-      downColor: '#F6465D',
-      borderUpColor: '#00C076',
-      borderDownColor: '#F6465D',
-      wickUpColor: '#00C076',
-      wickDownColor: '#F6465D',
+      upColor: '#FFFFFF',
+      downColor: '#000000',
+      borderUpColor: '#FFFFFF',
+      borderDownColor: '#FFFFFF',
+      wickUpColor: '#FFFFFF',
+      wickDownColor: '#FFFFFF',
     });
 
     const formattedData = candles.map((c) => ({
@@ -129,7 +129,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({
       haptic.success();
       setFeedback({
         type: 'success',
-        message: 'Идентификация успешна: найдена точная сигнальная свеча разворота.',
+        message: 'IDENTIFICATION SUCCESSFUL: EXACT REVERSAL CANDLE VALIDATED.',
       });
       setTimeout(() => {
         onSuccess();
@@ -138,9 +138,9 @@ export const TradingChart: React.FC<TradingChartProps> = ({
       haptic.error();
       setFeedback({
         type: 'error',
-        message: 'Неверно выбранная свеча. Обратите внимание на пропорции тела и теней.',
+        message: 'VALIDATION FAILED: CHECK WICK AND BODY PROPORTIONS.',
       });
-      onError('Неверная свеча');
+      onError('Invalid selection');
     }
   };
 
@@ -154,7 +154,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({
       haptic.success();
       setFeedback({
         type: 'success',
-        message: `Уровень подтвержден: ${userLevelPrice.toLocaleString()} USD (допустимая погрешность соблюдена).`,
+        message: `LEVEL VALIDATED: ${userLevelPrice.toLocaleString()} USD CONFIRMED.`,
       });
       setTimeout(() => {
         onSuccess();
@@ -163,9 +163,9 @@ export const TradingChart: React.FC<TradingChartProps> = ({
       haptic.error();
       setFeedback({
         type: 'error',
-        message: `Уровень не подтвержден (${userLevelPrice.toLocaleString()} USD). Ищите точку касания нескольких экстремумов.`,
+        message: `DEVIATION DETECTED: LEVEL ${userLevelPrice.toLocaleString()} USD INVALID.`,
       });
-      onError('Неточный уровень');
+      onError('Invalid price level');
     }
   };
 
@@ -210,7 +210,7 @@ export const TradingChart: React.FC<TradingChartProps> = ({
           haptic.success();
           setFeedback({
             type: 'success',
-            message: 'Исполнение Take-Profit: позиция закрыта с расчетной прибылью 1:3.',
+            message: 'TAKE-PROFIT EXECUTED: POSITION CLOSED WITH 1:3 RR RATIO.',
           });
           setTimeout(() => {
             onSuccess();
@@ -219,34 +219,29 @@ export const TradingChart: React.FC<TradingChartProps> = ({
           haptic.error();
           setFeedback({
             type: 'error',
-            message: 'Срабатывание Stop-Loss: фиксация расчетного риска 1%.',
+            message: 'STOP-LOSS TRIGGERED: 1% CAPITAL PRESERVATION EXECUTED.',
           });
-          onError('Убыточная позиция');
+          onError('Trade stopped out');
         }
       }
     }, 600);
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#06080E] rounded-3xl border border-[#1E293B] overflow-hidden shadow-2xl">
+    <div className="flex flex-col h-full w-full bg-black border border-white/20 overflow-hidden font-mono select-none">
       {/* Top Header Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#0F1420] border-b border-[#1E293B] text-xs text-slate-300">
+      <div className="flex items-center justify-between px-3 py-2 bg-neutral-950 border-b border-white/15 text-xs">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#00C076]" />
-          <span className="font-mono font-bold text-white tracking-wider">BTC/USDT PERP</span>
-          <span className="px-1.5 py-0.5 rounded bg-[#172033] text-slate-400 font-mono text-[10px] border border-[#1E293B]">
-            15M
-          </span>
+          <span className="w-1.5 h-1.5 bg-white" />
+          <span className="font-bold text-white uppercase text-[11px]">BTC/USDT // SPEC. CHART</span>
         </div>
-        <div className="flex items-center gap-3 font-mono text-xs">
+        <div className="text-[10px]">
           {actionType === 'find_candle' && (
-            <span className="text-[#F0B90B] font-bold flex items-center gap-1">
-              <Target className="w-3.5 h-3.5" /> Выберите свечу
-            </span>
+            <span className="text-white font-bold">[ SELECT CANDLE ]</span>
           )}
           {actionType === 'draw_level' && userLevelPrice && (
-            <span className="text-[#38BDF8] font-bold">
-              Уровень: ${userLevelPrice.toLocaleString()}
+            <span className="text-white font-bold">
+              LVL: ${userLevelPrice.toLocaleString()}
             </span>
           )}
         </div>
@@ -258,64 +253,56 @@ export const TradingChart: React.FC<TradingChartProps> = ({
       </div>
 
       {/* Controls */}
-      <div className="p-4 bg-[#0F1420] border-t border-[#1E293B] flex flex-col gap-3">
+      <div className="p-3 bg-neutral-950 border-t border-white/15 flex flex-col gap-2.5">
         {feedback.type && (
           <div
-            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold font-mono animate-fadeIn ${
+            className={`p-2 border text-[11px] font-mono uppercase ${
               feedback.type === 'success'
-                ? 'bg-[#00C076]/10 text-[#00C076] border border-[#00C076]/30'
-                : 'bg-[#F6465D]/10 text-[#F6465D] border border-[#F6465D]/30'
+                ? 'bg-black text-white border-white'
+                : 'bg-black text-neutral-400 border-neutral-700'
             }`}
           >
-            {feedback.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-[#00C076]" />
-            ) : (
-              <ShieldAlert className="w-4 h-4 shrink-0 text-[#F6465D]" />
-            )}
             <span>{feedback.message}</span>
           </div>
         )}
 
         {actionType === 'draw_level' && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={handleValidateLevel}
               disabled={userLevelPrice === null}
-              className={`flex-1 py-3.5 px-4 rounded-2xl font-mono font-bold text-xs uppercase tracking-wider transition-all ${
+              className={`flex-1 py-2.5 px-3 border font-mono font-bold text-xs uppercase tracking-wider transition-all ${
                 userLevelPrice !== null
-                  ? 'bg-[#38BDF8] text-[#06080E] cursor-pointer shadow-lg shadow-[#38BDF8]/20'
-                  : 'bg-[#1E293B] text-slate-500 cursor-not-allowed'
+                  ? 'bg-white text-black border-white cursor-pointer hover:bg-neutral-200'
+                  : 'bg-black text-neutral-600 border-white/10 cursor-not-allowed'
               }`}
             >
-              {userLevelPrice ? `Подтвердить уровень ($${userLevelPrice.toLocaleString()})` : 'Кликните по графику для выбора цены'}
+              {userLevelPrice ? `CONFIRM LEVEL ($${userLevelPrice.toLocaleString()})` : '[ CLICK CHART TO POSITION LEVEL ]'}
             </button>
           </div>
         )}
 
         {actionType === 'place_trade' && (
           <div className="flex flex-col gap-2">
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 onClick={() => handleStartTradeSimulation('LONG')}
                 disabled={isSimulating}
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl font-mono font-bold text-xs uppercase tracking-wider bg-[#00C076] text-[#06080E] shadow-lg shadow-[#00C076]/20 cursor-pointer"
+                className="flex-1 py-2.5 px-3 font-mono font-black text-xs uppercase bg-white text-black border border-white cursor-pointer hover:bg-neutral-200"
               >
-                <TrendingUp className="w-4 h-4" />
-                <span>КУПИТЬ / ЛОНГ</span>
+                [ BUY / LONG ]
               </button>
               <button
                 onClick={() => handleStartTradeSimulation('SHORT')}
                 disabled={isSimulating}
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl font-mono font-bold text-xs uppercase tracking-wider bg-[#F6465D] text-white shadow-lg shadow-[#F6465D]/20 cursor-pointer"
+                className="flex-1 py-2.5 px-3 font-mono font-black text-xs uppercase bg-black text-white border border-white/40 cursor-pointer hover:bg-white hover:text-black hover:border-white"
               >
-                <TrendingDown className="w-4 h-4" />
-                <span>ПРОДАТЬ / ШОРТ</span>
+                [ SELL / SHORT ]
               </button>
             </div>
             {isSimulating && (
-              <div className="flex items-center justify-center gap-2 py-1 text-xs text-[#F0B90B] font-mono animate-pulse">
-                <Play className="w-3.5 h-3.5 animate-spin" />
-                <span>Исполнение ордера: симуляция рыночных котировок...</span>
+              <div className="flex items-center justify-center gap-1.5 py-1 text-[10px] text-white font-mono animate-pulse">
+                <span>[ SIMULATION RUNNING IN REAL TIME ]</span>
               </div>
             )}
           </div>

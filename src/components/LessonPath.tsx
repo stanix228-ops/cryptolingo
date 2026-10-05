@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Module, Lesson, UserProgress } from '../types';
-import { Lock, Check, ArrowRight, Clock, Layers } from 'lucide-react';
+import { Lock, Check, ArrowRight } from 'lucide-react';
 import { haptic } from '../services/telegram';
 
 interface LessonPathProps {
@@ -39,7 +39,6 @@ export const LessonPath: React.FC<LessonPathProps> = ({
     ? modules
     : modules.filter((m) => m.id === selectedFilter);
 
-  // Generate ASCII / Solid blocks representation of progress
   const totalBlocks = 20;
   const filledBlocks = Math.round((progressPercent / 100) * totalBlocks);
   const emptyBlocks = totalBlocks - filledBlocks;
@@ -47,29 +46,29 @@ export const LessonPath: React.FC<LessonPathProps> = ({
 
   return (
     <div className="flex flex-col max-w-md mx-auto px-3 py-4 pb-28 gap-4 select-none font-sans text-white">
-      {/* Swiss Master Technical Header */}
-      <div className="p-4 bg-black border-2 border-white flex flex-col gap-3 shadow-none">
-        <div className="flex items-center justify-between border-b border-white/30 pb-2">
+      {/* Technical Header with Thin Border */}
+      <div className="p-4 bg-black border border-white/25 flex flex-col gap-3">
+        <div className="flex items-center justify-between border-b border-white/15 pb-2">
           <span className="font-mono text-[11px] font-bold tracking-widest uppercase text-white">
             OKX // CRYPTOLINGO ACADEMY
           </span>
-          <span className="font-mono text-[11px] font-bold text-white bg-white text-black px-1.5 py-0.5">
+          <span className="font-mono text-[10px] font-bold text-black bg-white px-1.5 py-0.5">
             [ {completedTotal < 10 ? `0${completedTotal}` : completedTotal} / {totalLessons < 10 ? `0${totalLessons}` : totalLessons} OK ]
           </span>
         </div>
 
         <div>
-          <h1 className="text-base font-black uppercase tracking-wider leading-tight text-white">
+          <h1 className="text-sm font-black uppercase tracking-wider leading-tight text-white">
             Curriculum Specification 2026
           </h1>
-          <p className="text-[11px] text-neutral-400 font-mono mt-1 leading-relaxed">
+          <p className="text-[11px] text-neutral-400 font-mono mt-0.5 leading-relaxed">
             Market analysis, liquidity orderbook dynamics, risk parameters.
           </p>
         </div>
 
         {/* Solid Segmented Block Progress Bar */}
         <div className="flex flex-col gap-1 pt-1">
-          <div className="flex justify-between font-mono text-[10px] text-neutral-300">
+          <div className="flex justify-between font-mono text-[10px] text-neutral-400">
             <span>PROGRESS RATIO</span>
             <span className="font-bold text-white">{progressPercent}%</span>
           </div>
@@ -79,7 +78,7 @@ export const LessonPath: React.FC<LessonPathProps> = ({
         </div>
       </div>
 
-      {/* Swiss Square Filter Bar */}
+      {/* Swiss Square Filter Bar with Thin Borders */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 font-mono text-[11px] no-scrollbar">
         <button
           onClick={() => {
@@ -89,7 +88,7 @@ export const LessonPath: React.FC<LessonPathProps> = ({
           className={`px-3 py-1.5 border font-bold uppercase transition-all cursor-pointer ${
             selectedFilter === 'all'
               ? 'bg-white text-black border-white'
-              : 'bg-black text-neutral-400 border-neutral-800 hover:border-white hover:text-white'
+              : 'bg-black text-neutral-400 border-white/15 hover:border-white hover:text-white'
           }`}
         >
           [ ALL ]
@@ -105,7 +104,7 @@ export const LessonPath: React.FC<LessonPathProps> = ({
             className={`px-3 py-1.5 border font-bold uppercase whitespace-nowrap transition-all cursor-pointer ${
               selectedFilter === mod.id
                 ? 'bg-white text-black border-white'
-                : 'bg-black text-neutral-400 border-neutral-800 hover:border-white hover:text-white'
+                : 'bg-black text-neutral-400 border-white/15 hover:border-white hover:text-white'
             }`}
           >
             [ 0{mod.number}. {mod.title.split(' ')[0]} ]
@@ -113,8 +112,8 @@ export const LessonPath: React.FC<LessonPathProps> = ({
         ))}
       </div>
 
-      {/* Modules Feed */}
-      <div className="flex flex-col gap-5">
+      {/* Modules Feed with Thin Borders */}
+      <div className="flex flex-col gap-4">
         {filteredModules.map((module, mIdx) => {
           const modCompleted = module.lessons.filter((l) => progress.completedLessons[l.id]).length;
           const isModUnlocked = mIdx === 0 || !!progress.completedLessons[modules[mIdx - 1].lessons[modules[mIdx - 1].lessons.length - 1].id];
@@ -122,14 +121,14 @@ export const LessonPath: React.FC<LessonPathProps> = ({
           return (
             <div
               key={module.id}
-              className={`border-2 transition-all ${
+              className={`border transition-all ${
                 isModUnlocked
-                  ? 'border-white bg-black'
-                  : 'border-neutral-800 bg-neutral-950 opacity-50'
+                  ? 'border-white/25 bg-black'
+                  : 'border-white/10 bg-neutral-950 opacity-50'
               }`}
             >
-              {/* Module Header Bar */}
-              <div className="p-3.5 border-b border-white/40 bg-neutral-950 flex flex-col gap-1.5">
+              {/* Module Header */}
+              <div className="p-3 border-b border-white/15 bg-neutral-950 flex flex-col gap-1">
                 <div className="flex items-center justify-between font-mono text-[10px]">
                   <span className="font-black bg-white text-black px-1.5 py-0.5 tracking-wider uppercase">
                     MODULE 0{module.number}
@@ -139,7 +138,7 @@ export const LessonPath: React.FC<LessonPathProps> = ({
                   </span>
                 </div>
 
-                <h2 className="text-sm font-black uppercase tracking-wide text-white mt-0.5">
+                <h2 className="text-xs font-black uppercase tracking-wide text-white mt-0.5">
                   {module.title}
                 </h2>
                 <p className="text-[11px] text-neutral-400 font-sans leading-normal">
@@ -148,7 +147,7 @@ export const LessonPath: React.FC<LessonPathProps> = ({
               </div>
 
               {/* Lesson Items */}
-              <div className="divide-y divide-neutral-800">
+              <div className="divide-y divide-white/10">
                 {module.lessons.map((lesson, lIdx) => {
                   const unlocked = isLessonUnlocked(mIdx, lIdx);
                   const completion = progress.completedLessons[lesson.id];
@@ -165,15 +164,15 @@ export const LessonPath: React.FC<LessonPathProps> = ({
                           haptic.warning();
                         }
                       }}
-                      className={`p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors ${
+                      className={`p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors ${
                         unlocked
                           ? 'hover:bg-neutral-900 cursor-pointer'
                           : 'cursor-not-allowed bg-black'
                       }`}
                     >
                       {/* Left: Index & Titles */}
-                      <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <span className="font-mono font-black text-xs text-white border border-neutral-700 bg-neutral-950 px-1.5 py-1 shrink-0">
+                      <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                        <span className="font-mono font-black text-xs text-white border border-white/20 bg-neutral-950 px-1.5 py-0.5 shrink-0">
                           {lIdx + 1 < 10 ? `0${lIdx + 1}` : lIdx + 1}
                         </span>
 
@@ -190,20 +189,20 @@ export const LessonPath: React.FC<LessonPathProps> = ({
                         </div>
                       </div>
 
-                      {/* Right: Sharp Action Button */}
+                      {/* Right: Action Button */}
                       <div className="shrink-0 flex items-center self-end sm:self-center">
                         {isCompleted ? (
-                          <div className="px-3 py-1.5 border border-white text-white font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 bg-neutral-900">
+                          <div className="px-2.5 py-1 border border-white/40 text-white font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 bg-neutral-900">
                             <Check className="w-3 h-3 text-white" />
                             <span>[ COMPLETED ]</span>
                           </div>
                         ) : unlocked ? (
-                          <button className="px-3.5 py-1.5 bg-white text-black font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1 hover:bg-neutral-200 transition-colors">
+                          <button className="px-3 py-1 bg-white text-black font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1 hover:bg-neutral-200 transition-colors cursor-pointer">
                             <span>ENTER LESSON</span>
                             <ArrowRight className="w-3 h-3" />
                           </button>
                         ) : (
-                          <div className="px-2.5 py-1.5 border border-neutral-800 text-neutral-600 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                          <div className="px-2 py-1 border border-white/10 text-neutral-600 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
                             <Lock className="w-3 h-3" />
                             <span>[ ACCESS DENIED ]</span>
                           </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TradingChart } from './TradingChart';
-import { RefreshCw, Activity, ShieldCheck, BarChart3 } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { haptic } from '../services/telegram';
 
 export const SimulatorView: React.FC = () => {
@@ -42,48 +42,45 @@ export const SimulatorView: React.FC = () => {
   const winrate = Math.round((winCount / (winCount + lossCount || 1)) * 100);
 
   return (
-    <div className="flex flex-col max-w-md mx-auto px-4 py-4 pb-28 gap-4 animate-fadeIn select-none">
+    <div className="flex flex-col max-w-md mx-auto px-3 py-4 pb-28 gap-4 select-none font-mono text-white animate-fadeIn">
       {/* Top Bar Stats */}
-      <div className="grid grid-cols-3 gap-2.5 font-mono">
-        <div className="p-3.5 bg-[#0F1420] border border-[#1E293B] rounded-2xl flex flex-col shadow-lg">
-          <span className="text-[10px] text-slate-400 font-bold uppercase">Баланс USD</span>
-          <span className="text-sm font-black text-[#00C076] mt-0.5">
+      <div className="grid grid-cols-3 gap-2">
+        <div className="p-3 bg-black border border-white/20 flex flex-col">
+          <span className="text-[9px] text-neutral-400 font-bold uppercase">USD BALANCE</span>
+          <span className="text-xs font-black text-white mt-1">
             ${balance.toLocaleString()}
           </span>
         </div>
 
-        <div className="p-3.5 bg-[#0F1420] border border-[#1E293B] rounded-2xl flex flex-col shadow-lg">
-          <span className="text-[10px] text-slate-400 font-bold uppercase">Винрейт</span>
-          <span className="text-sm font-black text-[#F0B90B] mt-0.5">{winrate}%</span>
+        <div className="p-3 bg-black border border-white/20 flex flex-col">
+          <span className="text-[9px] text-neutral-400 font-bold uppercase">WIN RATE</span>
+          <span className="text-xs font-black text-white mt-1">{winrate}%</span>
         </div>
 
-        <div className="p-3.5 bg-[#0F1420] border border-[#1E293B] rounded-2xl flex flex-col shadow-lg">
-          <span className="text-[10px] text-slate-400 font-bold uppercase">Сделки W/L</span>
-          <span className="text-sm font-black text-slate-200 mt-0.5">
-            {winCount} <span className="text-slate-500 font-normal">/</span> {lossCount}
+        <div className="p-3 bg-black border border-white/20 flex flex-col">
+          <span className="text-[9px] text-neutral-400 font-bold uppercase">W / L RECORD</span>
+          <span className="text-xs font-black text-white mt-1">
+            {winCount} / {lossCount}
           </span>
         </div>
       </div>
 
       {/* Simulator Info Header */}
-      <div className="p-4 bg-[#0F1420] border border-[#1E293B] rounded-3xl flex items-center justify-between shadow-xl">
+      <div className="p-3 bg-black border border-white/20 flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#38BDF8]" />
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#38BDF8]">
-              СИМУЛЯТОР РЫНКА
-            </span>
-          </div>
-          <h3 className="text-xs font-bold text-white mt-1 leading-snug">
-            Кейс: Восстановление после импульсного сброса
+          <span className="text-[9px] uppercase tracking-wider text-black bg-white px-1 font-bold">
+            HISTORICAL SIMULATOR
+          </span>
+          <h3 className="text-xs font-bold text-white mt-1 uppercase">
+            Case: Impulsive Reversal Dynamics
           </h3>
         </div>
         <button
           onClick={handleReset}
-          className="p-3 rounded-2xl bg-[#172033] border border-[#1E293B] text-slate-300 hover:text-white transition-colors cursor-pointer"
-          title="Сбросить симуляцию"
+          className="p-2 bg-neutral-950 border border-white/20 text-white hover:bg-white hover:text-black transition-colors cursor-pointer"
+          title="Reset"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className="w-3.5 h-3.5" />
         </button>
       </div>
 
