@@ -2,142 +2,70 @@
 
 @layer base {
   :root {
-    --bg-void: #06080e;
-    --bg-surface: #0f1420;
-    --bg-elevated: #172033;
-    --border-subtle: #1e293b;
-    --accent-bullish: #00f59b;
-    --accent-bearish: #ff3366;
-    --accent-gold: #ffd200;
-    --accent-cyan: #38bdf8;
-    --accent-purple: #a855f7;
+    --bg-black: #000000;
+    --bg-dark: #080808;
+    --bg-card: #0c0c0c;
+    --border-white: #ffffff;
+    --border-muted: #262626;
+    --text-white: #ffffff;
+    --text-muted: #888888;
   }
 
   * {
     -webkit-tap-highlight-color: transparent;
     user-select: none;
     box-sizing: border-box;
+    border-radius: 0px !important; /* Strict Swiss 0px rule */
   }
 
   body {
-    background-color: #06080e;
-    color: #f8fafc;
+    background-color: #000000;
+    color: #ffffff;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     overflow-x: hidden;
   }
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: #06080e;
-}
-::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 9999px;
-}
-
-/* Glassmorphism Classes */
-.glass-panel {
-  background: rgba(15, 20, 32, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(30, 41, 59, 0.8);
-}
-
-.glass-nav {
-  background: rgba(6, 8, 14, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(30, 41, 59, 0.8);
-}
-
-/* Neon Glow Animations */
-@keyframes neonPulseGreen {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(0, 245, 155, 0.25), inset 0 0 10px rgba(0, 245, 155, 0.1);
-  }
-  50% {
-    box-shadow: 0 0 28px rgba(0, 245, 155, 0.5), inset 0 0 15px rgba(0, 245, 155, 0.25);
-  }
-}
-
-@keyframes neonPulseGold {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(255, 210, 0, 0.25), inset 0 0 10px rgba(255, 210, 0, 0.1);
-  }
-  50% {
-    box-shadow: 0 0 28px rgba(255, 210, 0, 0.5), inset 0 0 15px rgba(255, 210, 0, 0.25);
-  }
-}
-
-.glow-bullish {
-  animation: neonPulseGreen 2.5s infinite ease-in-out;
-}
-
-.glow-gold {
-  animation: neonPulseGold 2.5s infinite ease-in-out;
-}
-
-/* 3D Tactile Buttons (Duolingo / Arcade Style) */
-.btn-3d-bullish {
-  background: linear-gradient(180deg, #00f59b 0%, #05d688 100%);
-  color: #06080e;
-  box-shadow: 0 4px 0 #049e64, 0 6px 12px rgba(0, 245, 155, 0.3);
-  transition: all 0.1s ease;
+/* Swiss Monochrome Button System */
+.btn-swiss-primary {
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid #ffffff;
   font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.1s ease-in-out;
 }
-.btn-3d-bullish:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #049e64, 0 2px 6px rgba(0, 245, 155, 0.2);
-}
-
-.btn-3d-bearish {
-  background: linear-gradient(180deg, #ff3366 0%, #e11d48 100%);
+.btn-swiss-primary:hover, .btn-swiss-primary:active {
+  background-color: #000000;
   color: #ffffff;
-  box-shadow: 0 4px 0 #9f1239, 0 6px 12px rgba(255, 51, 102, 0.3);
-  transition: all 0.1s ease;
-  font-weight: 800;
-}
-.btn-3d-bearish:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #9f1239, 0 2px 6px rgba(255, 51, 102, 0.2);
+  border-color: #ffffff;
 }
 
-.btn-3d-gold {
-  background: linear-gradient(180deg, #ffd200 0%, #f59e0b 100%);
-  color: #06080e;
-  box-shadow: 0 4px 0 #b45309, 0 6px 12px rgba(255, 210, 0, 0.3);
-  transition: all 0.1s ease;
-  font-weight: 800;
+.btn-swiss-secondary {
+  background-color: #000000;
+  color: #ffffff;
+  border: 1px solid #333333;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.1s ease-in-out;
 }
-.btn-3d-gold:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #b45309, 0 2px 6px rgba(255, 210, 0, 0.2);
-}
-
-.btn-3d-cyan {
-  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
-  color: #06080e;
-  box-shadow: 0 4px 0 #0369a1, 0 6px 12px rgba(56, 189, 248, 0.3);
-  transition: all 0.1s ease;
-  font-weight: 800;
-}
-.btn-3d-cyan:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #0369a1, 0 2px 6px rgba(56, 189, 248, 0.2);
+.btn-swiss-secondary:hover, .btn-swiss-secondary:active {
+  background-color: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
 }
 
-.btn-3d-dark {
-  background: linear-gradient(180deg, #1e293b 0%, #151d2c 100%);
-  color: #94a3b8;
-  box-shadow: 0 4px 0 #0b0f19;
-  transition: all 0.1s ease;
+.btn-swiss-ghost {
+  background-color: transparent;
+  color: #888888;
+  border: 1px solid #222222;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
-.btn-3d-dark:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #0b0f19;
+.btn-swiss-ghost:hover {
+  color: #ffffff;
+  border-color: #555555;
 }

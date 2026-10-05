@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Flame, Zap, Shield, Activity } from 'lucide-react';
+import { Heart, Flame, Zap } from 'lucide-react';
 import type { UserProgress } from '../types';
 import { haptic } from '../services/telegram';
 
@@ -15,47 +15,46 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenProfile,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-[#06080E]/95 backdrop-blur-xl border-b border-[#1E293B] px-4 py-2.5 select-none transition-all">
+    <header className="sticky top-0 z-40 bg-black border-b-2 border-white px-3 py-2.5 select-none transition-all">
       <div className="max-w-md mx-auto flex items-center justify-between">
-        {/* Brand & Terminal Badge */}
+        {/* Brand */}
         <button
           onClick={() => {
             haptic.selection();
             onOpenProfile();
           }}
-          className="flex items-center gap-2.5 text-left group cursor-pointer"
+          className="flex items-center gap-2 text-left cursor-pointer"
         >
-          <div className="w-9 h-9 rounded-xl bg-[#0F1420] border border-[#1E293B] flex items-center justify-center text-[#00C076] font-mono font-black text-sm shadow-sm group-hover:border-[#00C076] transition-colors">
+          <div className="w-8 h-8 bg-white text-black font-mono font-black text-xs flex items-center justify-center border border-white">
             OKX
           </div>
           <div>
-            <span className="font-extrabold text-sm tracking-tight text-white block leading-tight">
-              CryptoLingo Pro
+            <span className="font-mono font-black text-xs uppercase tracking-wider text-white block leading-tight">
+              CRYPTOLINGO PRO
             </span>
-            <span className="text-[10px] text-slate-400 font-mono tracking-wider flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00C076]" />
-              TERMINAL ACADEMY
+            <span className="font-mono text-[9px] text-neutral-400 uppercase tracking-widest block">
+              SPEC. 2026 // ACADEMY
             </span>
           </div>
         </button>
 
-        {/* Stats Badges without Emojis */}
-        <div className="flex items-center gap-2">
+        {/* Stats Badges */}
+        <div className="flex items-center gap-1.5 font-mono text-[11px]">
           {/* Lives */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#0F1420] border border-[#1E293B] text-[#F6465D] text-xs font-bold font-mono">
-            <Heart className="w-3.5 h-3.5 fill-[#F6465D] text-[#F6465D]" />
+          <div className="flex items-center gap-1 px-2 py-0.5 border border-neutral-700 bg-neutral-950 text-white font-bold">
+            <Heart className="w-3 h-3 text-white fill-white" />
             <span>{progress.lives}</span>
           </div>
 
           {/* Streak */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#0F1420] border border-[#1E293B] text-[#F0B90B] text-xs font-bold font-mono">
-            <Flame className="w-3.5 h-3.5 text-[#F0B90B]" />
-            <span>{progress.streakDays}d</span>
+          <div className="flex items-center gap-1 px-2 py-0.5 border border-neutral-700 bg-neutral-950 text-white font-bold">
+            <Flame className="w-3 h-3 text-white" />
+            <span>{progress.streakDays}D</span>
           </div>
 
           {/* XP */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#00C076]/10 border border-[#00C076]/30 text-[#00C076] text-xs font-bold font-mono">
-            <Zap className="w-3.5 h-3.5 fill-[#00C076] text-[#00C076]" />
+          <div className="flex items-center gap-1 px-2 py-0.5 border border-white bg-white text-black font-black">
+            <Zap className="w-3 h-3 text-black fill-black" />
             <span>{progress.xp} XP</span>
           </div>
         </div>

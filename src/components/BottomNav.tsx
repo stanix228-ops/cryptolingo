@@ -12,14 +12,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onChangeTab,
 }) => {
   const tabs = [
-    { id: 'lessons', label: 'Академия', icon: BookOpen },
-    { id: 'simulator', label: 'Терминал', icon: LineChart },
-    { id: 'profile', label: 'Профиль', icon: User },
+    { id: 'lessons', label: 'ACADEMY', icon: BookOpen },
+    { id: 'simulator', label: 'TERMINAL', icon: LineChart },
+    { id: 'profile', label: 'PROFILE', icon: User },
   ] as const;
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-[#06080E]/95 backdrop-blur-2xl border-t border-[#1E293B] px-4 py-2 pb-safe select-none">
-      <div className="max-w-md mx-auto flex items-center justify-around">
+    <nav className="fixed bottom-0 inset-x-0 z-40 bg-black border-t-2 border-white px-3 py-1.5 pb-safe select-none">
+      <div className="max-w-md mx-auto flex items-center justify-around font-mono">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -31,22 +31,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 haptic.selection();
                 onChangeTab(tab.id);
               }}
-              className={`flex flex-col items-center gap-1 py-1.5 px-6 rounded-2xl transition-all duration-150 cursor-pointer ${
+              className={`flex-1 py-2 flex flex-col items-center gap-1 transition-all cursor-pointer ${
                 isActive
-                  ? 'text-[#00C076] font-bold'
-                  : 'text-slate-400 hover:text-slate-200 font-medium'
+                  ? 'bg-white text-black font-black'
+                  : 'text-neutral-400 hover:text-white font-bold bg-transparent'
               }`}
             >
-              <div
-                className={`p-1.5 rounded-xl transition-all duration-150 ${
-                  isActive
-                    ? 'bg-[#00C076]/10 text-[#00C076] scale-105'
-                    : ''
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-              </div>
-              <span className="text-[10px] font-mono tracking-wider uppercase">{tab.label}</span>
+              <Icon className="w-4 h-4" />
+              <span className="text-[10px] tracking-wider uppercase">[ {tab.label} ]</span>
             </button>
           );
         })}
