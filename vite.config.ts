@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  base: './', // Ensures relative assets work on Vercel, GitHub Pages, and Telegram WebApp
   server: {
     host: true,
     port: 3000,
