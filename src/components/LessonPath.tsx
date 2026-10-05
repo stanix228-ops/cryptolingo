@@ -50,7 +50,7 @@ export const LessonPath: React.FC<LessonPathProps> = ({
       <div className="p-4 bg-black border border-white/25 flex flex-col gap-3">
         <div className="flex items-center justify-between border-b border-white/15 pb-2">
           <span className="font-mono text-[11px] font-bold tracking-widest uppercase text-white">
-            OKX // CRYPTOLINGO ACADEMY
+            CRYPTOLINGO // ACADEMY
           </span>
           <span className="font-mono text-[10px] font-bold text-black bg-white px-1.5 py-0.5">
             [ {completedTotal < 10 ? `0${completedTotal}` : completedTotal} / {totalLessons < 10 ? `0${totalLessons}` : totalLessons} OK ]

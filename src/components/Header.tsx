@@ -26,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center gap-2 text-left cursor-pointer"
         >
           <div className="w-7 h-7 bg-white text-black font-mono font-black text-xs flex items-center justify-center border border-white">
-            OKX
+            CL
           </div>
           <div>
             <span className="font-mono font-black text-xs uppercase tracking-wider text-white block leading-tight">

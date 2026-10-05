@@ -115,7 +115,7 @@ export const App: React.FC = () => {
         <SplashReveal onComplete={() => setShowSplash(false)} />
       )}
 
-      {/* Persistent OKX Header */}
+      {/* Header */}
       <Header
         progress={progress}
         onOpenProfile={() => setActiveTab('profile')}
