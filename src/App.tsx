@@ -9,7 +9,7 @@ import { BottomNav, type TabType } from './components/BottomNav';
 import { SplashReveal } from './components/SplashReveal';
 import { COURSE_MODULES } from './data/courses';
 import type { Lesson, UserProgress } from './types';
-import { initTelegramApp, haptic } from './services/telegram';
+import { initTelegramApp, getTelegramWebApp, getTelegramUser, haptic } from './services/telegram';
 
 const STORAGE_KEY = 'cryptolingo_user_progress';
 
@@ -45,6 +45,70 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     initTelegramApp();
+
+    // 1. Process URL search parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const isUnlockedParam =
+      urlParams.get('unlocked') === 'true' ||
+      urlParams.get('unlock_glossary') === 'true' ||
+      urlParams.get('ref_success') === '1';
+    const tabParam = urlParams.get('tab') as TabType;
+
+    if (isUnlockedParam) {
+      setProgress((prev) => ({
+        ...prev,
+        referralCount: Math.max(1, (prev.referralCount || 0) + 1),
+        isGlossaryUnlocked: true,
+      }));
+    }
+
+    if (tabParam && ['lessons', 'simulator', 'glossary', 'profile'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+
+    // 2. Process Telegram start_param
+    const tg = getTelegramWebApp();
+    const startParam = tg?.initDataUnsafe?.start_param;
+    const currentUser = getTelegramUser();
+
+    if (startParam) {
+      if (startParam.startsWith('ref_')) {
+        const inviterId = startParam.replace('ref_', '');
+        if (inviterId && inviterId !== String(currentUser.id)) {
+          // Register referral on backend API
+          fetch(`/api/referral?action=register&inviterId=${inviterId}&friendId=${currentUser.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ inviterId, friendId: currentUser.id }),
+          }).catch((err) => console.warn('Referral registration failed', err));
+        }
+      } else if (startParam === 'unlocked' || startParam === 'glossary') {
+        setProgress((prev) => ({
+          ...prev,
+          referralCount: Math.max(1, (prev.referralCount || 0) + 1),
+          isGlossaryUnlocked: true,
+        }));
+        setActiveTab('glossary');
+      }
+    }
+
+    // 3. Query remote referral status for currentUser
+    if (currentUser.id) {
+      fetch(`/api/referral?userId=${currentUser.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.ok && data.referralCount >= 1) {
+            setProgress((prev) => ({
+              ...prev,
+              referralCount: Math.max(prev.referralCount || 0, data.referralCount),
+              isGlossaryUnlocked: true,
+            }));
+          }
+        })
+        .catch(() => {
+          // Offline / Local fallback
+        });
+    }
   }, []);
 
   useEffect(() => {
