@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Lock, Unlock, Copy, Check, Share2, BookOpen, ExternalLink } from 'lucide-react';
+import { Search, Lock, Copy, Check, Share2, BookOpen, ExternalLink } from 'lucide-react';
 import { GLOSSARY_TERMS, GLOSSARY_CATEGORIES } from '../data/glossary';
 import type { UserProgress } from '../types';
-import { haptic, getTelegramWebApp } from '../services/telegram';
+import { haptic, getTelegramWebApp, openTelegramLink, shareToTelegram, copyText } from '../services/telegram';
 
 interface GlossaryViewProps {
   progress: UserProgress;
@@ -25,25 +25,29 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
 
   const isUnlocked = Boolean(progress.isGlossaryUnlocked || (progress.referralCount && progress.referralCount >= 1));
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
     haptic.medium();
-    navigator.clipboard.writeText(referralLink);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2500);
+    const success = await copyText(referralLink);
+    if (success) {
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    }
   };
 
   const handleShareTelegram = () => {
     haptic.heavy();
-    const shareText = encodeURIComponent(
-      'Практическое обучение торговле криптовалютой на графиках TradingView в CryptoLingo Pro. Присоединяйся:'
-    );
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${shareText}`;
-    window.open(shareUrl, '_blank');
+    const shareText = 'Практическое обучение торговле криптовалютой на реальных графиках TradingView в CryptoLingo Pro:';
+    shareToTelegram(referralLink, shareText);
   };
 
-  const handleCopyTerm = (termId: string, text: string) => {
+  const handleOpenReferralLink = () => {
     haptic.selection();
-    navigator.clipboard.writeText(text);
+    openTelegramLink(referralLink);
+  };
+
+  const handleCopyTerm = async (termId: string, text: string) => {
+    haptic.selection();
+    await copyText(text);
     setCopiedTermId(termId);
     setTimeout(() => setCopiedTermId(null), 2000);
   };
@@ -122,25 +126,37 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
               </div>
             </div>
 
-            {/* Referral Link Field */}
+            {/* Referral Link Box with clickable button */}
             <div className="w-full flex flex-col gap-1 text-left font-mono">
               <span className="text-[10px] text-neutral-400 uppercase tracking-wider">
                 Ваша персональная ссылка:
               </span>
-              <div className="flex items-center border border-white/25 bg-neutral-950 px-2.5 py-2 text-[11px] text-neutral-300 truncate">
-                <span className="truncate">{referralLink}</span>
-              </div>
+              <button
+                onClick={handleOpenReferralLink}
+                className="w-full flex items-center justify-between border border-white/25 bg-neutral-950 px-2.5 py-2 text-[11px] text-neutral-200 hover:border-white transition-all cursor-pointer group text-left"
+              >
+                <span className="truncate underline font-mono text-white">{referralLink}</span>
+                <ExternalLink className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white shrink-0 ml-2" />
+              </button>
             </div>
 
             {/* Actions */}
             <div className="w-full flex flex-col gap-2 pt-1">
               <button
-                onClick={handleCopyLink}
+                onClick={handleShareTelegram}
                 className="w-full py-3 bg-white text-black font-mono font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-white active:bg-neutral-200 cursor-pointer"
+              >
+                <Share2 className="w-4 h-4 text-black" />
+                <span>ОТПРАВИТЬ ПРИГЛАШЕНИЕ В TELEGRAM</span>
+              </button>
+
+              <button
+                onClick={handleCopyLink}
+                className="w-full py-3 bg-black text-white font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-white/30 hover:border-white active:bg-neutral-900 cursor-pointer"
               >
                 {copiedLink ? (
                   <>
-                    <Check className="w-4 h-4" />
+                    <Check className="w-4 h-4 text-white" />
                     <span>[ ССЫЛКА СКОПИРОВАНА ]</span>
                   </>
                 ) : (
@@ -149,14 +165,6 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
                     <span>СКОПИРОВАТЬ ССЫЛКУ</span>
                   </>
                 )}
-              </button>
-
-              <button
-                onClick={handleShareTelegram}
-                className="w-full py-3 bg-black text-white font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-white/30 hover:border-white active:bg-neutral-900 cursor-pointer"
-              >
-                <Share2 className="w-4 h-4" />
-                <span>ОТПРАВИТЬ ПРИГЛАШЕНИЕ В TELEGRAM</span>
               </button>
             </div>
           </div>

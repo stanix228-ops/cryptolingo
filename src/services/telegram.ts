@@ -26,6 +26,8 @@ declare global {
         expand: () => void;
         close: () => void;
         ready: () => void;
+        openLink?: (url: string) => void;
+        openTelegramLink?: (url: string) => void;
         HapticFeedback: {
           impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void;
           notificationOccurred: (type: 'error' | 'success' | 'warning') => void;
@@ -70,11 +72,55 @@ export const initTelegramApp = () => {
     tg.ready();
     tg.expand();
     try {
-      tg.setHeaderColor('#0a0d14');
-      tg.setBackgroundColor('#0a0d14');
+      tg.setHeaderColor('#000000');
+      tg.setBackgroundColor('#000000');
     } catch {
       // Ignored if older client
     }
+  }
+};
+
+export const openTelegramLink = (url: string) => {
+  const tg = getTelegramWebApp();
+  if (tg && typeof tg.openTelegramLink === 'function') {
+    tg.openTelegramLink(url);
+  } else {
+    window.open(url, '_blank');
+  }
+};
+
+export const shareToTelegram = (url: string, text: string) => {
+  // Use Telegram share protocol: https://t.me/share/url?url=...&text=...
+  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+  openTelegramLink(shareUrl);
+};
+
+export const copyText = async (text: string): Promise<boolean> => {
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) {
+    console.warn('Clipboard writeText failed, falling back', e);
+  }
+
+  // Fallback for older webviews
+  try {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return successful;
+  } catch (err) {
+    console.error('Fallback copy failed', err);
+    return false;
   }
 };
 
@@ -93,6 +139,6 @@ export const getTelegramUser = () => {
   return tg?.initDataUnsafe?.user || {
     id: 123456789,
     first_name: 'Трейдер',
-    username: 'crypto_champ',
+    username: 'crypto_trader',
   };
 };
