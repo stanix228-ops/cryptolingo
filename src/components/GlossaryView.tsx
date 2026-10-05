@@ -158,17 +158,6 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
                 <Share2 className="w-4 h-4" />
                 <span>ОТПРАВИТЬ ПРИГЛАШЕНИЕ В TELEGRAM</span>
               </button>
-
-              {/* Instant Simulation / Testing Unlock */}
-              <button
-                onClick={() => {
-                  haptic.success();
-                  onUnlockGlossary();
-                }}
-                className="w-full py-2 bg-neutral-950 text-neutral-400 font-mono text-[10px] uppercase tracking-wider border border-white/10 hover:border-white/30 hover:text-white cursor-pointer mt-2"
-              >
-                [ ТЕСТ: СИМУЛИРОВАТЬ ВХОД РЕФЕРАЛА ]
-              </button>
             </div>
           </div>
         </div>
