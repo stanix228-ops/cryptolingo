@@ -35,27 +35,26 @@ export const TradingChart: React.FC<TradingChartProps> = ({
   const [isSimulating, setIsSimulating] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | null; message: string }>({ type: null, message: '' });
 
-  // Initialize Chart
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#0F172A' },
+        background: { type: ColorType.Solid, color: '#06080E' },
         textColor: '#94A3B8',
-        fontSize: 12,
+        fontSize: 11,
       },
       grid: {
-        vertLines: { color: '#1E293B', style: LineStyle.Dotted },
-        horzLines: { color: '#1E293B', style: LineStyle.Dotted },
+        vertLines: { color: '#141B2D', style: LineStyle.Dotted },
+        horzLines: { color: '#141B2D', style: LineStyle.Dotted },
       },
       timeScale: {
-        borderColor: '#334155',
+        borderColor: '#1E293B',
         timeVisible: true,
         secondsVisible: false,
       },
       rightPriceScale: {
-        borderColor: '#334155',
+        borderColor: '#1E293B',
         scaleMargins: { top: 0.15, bottom: 0.15 },
       },
       crosshair: {
@@ -67,12 +66,12 @@ export const TradingChart: React.FC<TradingChartProps> = ({
     });
 
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: '#10B981',
-      downColor: '#EF4444',
-      borderUpColor: '#10B981',
-      borderDownColor: '#EF4444',
-      wickUpColor: '#10B981',
-      wickDownColor: '#EF4444',
+      upColor: '#00F59B',
+      downColor: '#FF3366',
+      borderUpColor: '#00F59B',
+      borderDownColor: '#FF3366',
+      wickUpColor: '#00F59B',
+      wickDownColor: '#FF3366',
     });
 
     const formattedData = candles.map((c) => ({
@@ -86,7 +85,6 @@ export const TradingChart: React.FC<TradingChartProps> = ({
     series.setData(formattedData);
     chart.timeScale().fitContent();
 
-    // Chart Click Handler for candle selection & level picking
     chart.subscribeClick((param) => {
       if (!param || !param.time || param.point === undefined) return;
 
@@ -126,7 +124,6 @@ export const TradingChart: React.FC<TradingChartProps> = ({
     };
   }, [candles, actionType]);
 
-  // Validate candle selection
   const checkCandleSelection = (idx: number) => {
     if (idx === targetCandleIndex) {
       haptic.success();
@@ -147,7 +144,6 @@ export const TradingChart: React.FC<TradingChartProps> = ({
     }
   };
 
-  // Validate support/resistance level
   const handleValidateLevel = () => {
     if (userLevelPrice === null || !targetLevelPrice) return;
 
@@ -173,7 +169,6 @@ export const TradingChart: React.FC<TradingChartProps> = ({
     }
   };
 
-  // Simulate future candles replay
   const handleStartTradeSimulation = (direction: 'LONG' | 'SHORT') => {
     if (isSimulating) return;
 
@@ -233,22 +228,24 @@ export const TradingChart: React.FC<TradingChartProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
+    <div className="flex flex-col h-full w-full bg-[#06080E] rounded-3xl border border-[#1E293B] overflow-hidden shadow-2xl">
       {/* Chart Top Info Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-slate-950/80 border-b border-slate-800 text-xs text-slate-300">
+      <div className="flex items-center justify-between px-4 py-3 bg-[#0F1420] border-b border-[#1E293B] text-xs text-slate-300">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-          <span className="font-bold text-white tracking-wider">LIVE CHART</span>
-          <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px]">BTC/USDT</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#00F59B] animate-ping" />
+          <span className="font-extrabold text-white tracking-wider">LIVE TERMINAL</span>
+          <span className="px-2 py-0.5 rounded bg-[#172033] text-slate-300 font-mono text-[11px] border border-[#1E293B]">
+            BTC/USDT
+          </span>
         </div>
         <div className="flex items-center gap-3">
           {actionType === 'find_candle' && (
-            <span className="text-amber-400 flex items-center gap-1">
+            <span className="text-[#FFD200] font-bold flex items-center gap-1">
               <Target className="w-3.5 h-3.5" /> Нажмите на свечу
             </span>
           )}
           {actionType === 'draw_level' && userLevelPrice && (
-            <span className="text-blue-400 font-mono font-bold">
+            <span className="text-[#38BDF8] font-mono font-bold">
               Уровень: ${userLevelPrice.toLocaleString()}
             </span>
           )}
@@ -261,50 +258,47 @@ export const TradingChart: React.FC<TradingChartProps> = ({
       </div>
 
       {/* Interactive Controls below Chart */}
-      <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-col gap-3">
-        {/* Feedback Alert */}
+      <div className="p-4 bg-[#0F1420] border-t border-[#1E293B] flex flex-col gap-3">
         {feedback.type && (
           <div
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium animate-fadeIn ${
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold animate-fadeIn ${
               feedback.type === 'success'
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                : 'bg-red-500/20 text-red-300 border border-red-500/40'
+                ? 'bg-[#00F59B]/15 text-[#00F59B] border border-[#00F59B]/40'
+                : 'bg-[#FF3366]/15 text-[#FF3366] border border-[#FF3366]/40'
             }`}
           >
             {feedback.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-[#00F59B]" />
             ) : (
-              <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
+              <AlertTriangle className="w-4 h-4 shrink-0 text-[#FF3366]" />
             )}
             <span>{feedback.message}</span>
           </div>
         )}
 
-        {/* Action Type: Level Confirmation */}
         {actionType === 'draw_level' && (
           <div className="flex items-center gap-3">
             <button
               onClick={handleValidateLevel}
               disabled={userLevelPrice === null}
-              className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm tracking-wide transition-all ${
+              className={`flex-1 py-3.5 px-4 rounded-2xl font-black text-sm tracking-wide transition-all ${
                 userLevelPrice !== null
-                  ? 'btn-3d-blue text-white cursor-pointer'
-                  : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                  ? 'btn-3d-cyan cursor-pointer'
+                  : 'bg-[#1E293B] text-slate-500 cursor-not-allowed'
               }`}
             >
-              {userLevelPrice ? `Подтвердить уровень (${userLevelPrice} $)` : 'Кликните на графике для выбора уровня'}
+              {userLevelPrice ? `Подтвердить уровень ($${userLevelPrice.toLocaleString()})` : 'Кликните на графике для выбора уровня'}
             </button>
           </div>
         )}
 
-        {/* Action Type: Place Trade (Long / Short with simulation) */}
         {actionType === 'place_trade' && (
           <div className="flex flex-col gap-2">
             <div className="flex gap-3">
               <button
                 onClick={() => handleStartTradeSimulation('LONG')}
                 disabled={isSimulating}
-                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-white btn-3d-green text-sm"
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl font-black text-sm btn-3d-bullish cursor-pointer"
               >
                 <TrendingUp className="w-4 h-4" />
                 <span>ОТКРЫТЬ LONG 🟢</span>
@@ -312,16 +306,16 @@ export const TradingChart: React.FC<TradingChartProps> = ({
               <button
                 onClick={() => handleStartTradeSimulation('SHORT')}
                 disabled={isSimulating}
-                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-white bg-rose-600 shadow-[0_4px_0_#9f1239] active:translate-y-[3px] active:shadow-none text-sm"
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl font-black text-sm btn-3d-bearish cursor-pointer"
               >
                 <TrendingDown className="w-4 h-4" />
                 <span>ОТКРЫТЬ SHORT 🔴</span>
               </button>
             </div>
             {isSimulating && (
-              <div className="flex items-center justify-center gap-2 py-2 text-xs text-amber-400 font-mono animate-pulse">
+              <div className="flex items-center justify-center gap-2 py-1.5 text-xs text-[#FFD200] font-mono animate-pulse">
                 <Play className="w-3.5 h-3.5 animate-spin" />
-                <span>Симуляция движения рынка в реальном времени...</span>
+                <span>Симуляция движения рынка по свечам...</span>
               </div>
             )}
           </div>

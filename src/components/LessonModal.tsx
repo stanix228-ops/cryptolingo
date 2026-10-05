@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lesson, StepType } from '../types';
+import type { Lesson, StepType } from '../types';
 import { TradingChart } from './TradingChart';
 import { X, ArrowRight, CheckCircle2, AlertCircle, Sparkles, BookOpen, Brain, TrendingUp, Trophy, Star } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -25,27 +25,24 @@ export const LessonModal: React.FC<LessonModalProps> = ({
   const [isCorrect, setIsCorrect] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 
-  const totalSteps = 1 + lesson.quiz.length + 1; // Theory + Quizzes + Practice
   const progressPercent =
     currentStep === 'theory'
-      ? 20
+      ? 25
       : currentStep === 'quiz'
-      ? 20 + ((currentQuizIdx + 1) / (lesson.quiz.length + 1)) * 50
+      ? 25 + ((currentQuizIdx + 1) / (lesson.quiz.length + 1)) * 50
       : currentStep === 'practice'
       ? 85
       : 100;
 
-  // Trigger celebration confetti
   const triggerConfetti = () => {
     confetti({
-      particleCount: 80,
-      spread: 70,
+      particleCount: 90,
+      spread: 80,
       origin: { y: 0.6 },
-      colors: ['#10B981', '#3B82F6', '#F59E0B', '#EC4899'],
+      colors: ['#00F59B', '#38BDF8', '#FFD200', '#A855F7'],
     });
   };
 
-  // Handle Quiz selection
   const handleCheckQuiz = () => {
     if (selectedQuizOption === null) return;
 
@@ -69,7 +66,6 @@ export const LessonModal: React.FC<LessonModalProps> = ({
       setSelectedQuizOption(null);
       setIsAnswerChecked(false);
     } else {
-      // Move to Practice step!
       setCurrentStep('practice');
       setSelectedQuizOption(null);
       setIsAnswerChecked(false);
@@ -77,7 +73,6 @@ export const LessonModal: React.FC<LessonModalProps> = ({
     }
   };
 
-  // Handle Practice Success
   const handlePracticeSuccess = () => {
     haptic.success();
     triggerConfetti();
@@ -89,41 +84,41 @@ export const LessonModal: React.FC<LessonModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950 flex flex-col justify-between overflow-hidden animate-fadeIn">
+    <div className="fixed inset-0 z-50 bg-[#06080E] flex flex-col justify-between overflow-hidden animate-fadeIn select-none">
       {/* Top Header Navigation */}
-      <div className="px-4 py-3 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md flex items-center justify-between gap-3">
+      <div className="px-4 py-3 border-b border-[#1E293B] bg-[#06080E]/90 backdrop-blur-xl flex items-center justify-between gap-3">
         <button
           onClick={onClose}
-          className="w-9 h-9 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+          className="w-10 h-10 rounded-full bg-[#0F1420] border border-[#1E293B] flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Progress bar */}
-        <div className="flex-1 h-3 bg-slate-900 rounded-full border border-slate-800 overflow-hidden">
+        {/* Glowing Progress Bar */}
+        <div className="flex-1 h-3 bg-[#0F1420] rounded-full border border-[#1E293B] overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300"
+            className="h-full bg-gradient-to-r from-[#00F59B] via-[#38BDF8] to-[#FFD200] rounded-full transition-all duration-300 shadow-sm"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
 
         {/* Step Indicator */}
-        <div className="flex items-center gap-1 text-xs font-bold text-slate-400 px-2 py-1 rounded-md bg-slate-900 border border-slate-800">
-          {currentStep === 'theory' && <BookOpen className="w-3.5 h-3.5 text-blue-400" />}
-          {currentStep === 'quiz' && <Brain className="w-3.5 h-3.5 text-amber-400" />}
-          {currentStep === 'practice' && <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />}
-          <span className="capitalize">{currentStep}</span>
+        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300 px-3 py-1 rounded-full bg-[#0F1420] border border-[#1E293B]">
+          {currentStep === 'theory' && <BookOpen className="w-3.5 h-3.5 text-[#38BDF8]" />}
+          {currentStep === 'quiz' && <Brain className="w-3.5 h-3.5 text-[#FFD200]" />}
+          {currentStep === 'practice' && <TrendingUp className="w-3.5 h-3.5 text-[#00F59B]" />}
+          <span className="capitalize">{currentStep === 'theory' ? 'Теория' : currentStep === 'quiz' ? 'Тест' : 'График'}</span>
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content Body */}
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col items-center">
         {/* STEP 1: THEORY */}
         {currentStep === 'theory' && (
-          <div className="w-full max-w-md flex flex-col gap-4 animate-fadeIn">
-            {/* Title & Badge */}
+          <div className="w-full max-w-md flex flex-col gap-4 animate-fadeIn pb-6">
+            {/* Title Badge */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full w-fit border border-emerald-500/20">
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#00F59B] bg-[#00F59B]/10 px-3 py-1 rounded-full w-fit border border-[#00F59B]/30">
                 {lesson.theory.badge}
               </span>
               <h1 className="text-xl font-black text-white leading-tight">
@@ -132,19 +127,29 @@ export const LessonModal: React.FC<LessonModalProps> = ({
             </div>
 
             {/* Theory Cards */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3.5">
               {lesson.theory.points.map((pt, idx) => (
                 <div
                   key={idx}
-                  className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md flex flex-col gap-2"
+                  className="p-4 rounded-2xl bg-[#0F1420] border border-[#1E293B] shadow-lg flex flex-col gap-2 relative overflow-hidden"
                 >
                   <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <span
+                      className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                        pt.badgeType === 'bull'
+                          ? 'bg-[#00F59B]'
+                          : pt.badgeType === 'bear'
+                          ? 'bg-[#FF3366]'
+                          : pt.badgeType === 'warning'
+                          ? 'bg-[#FFD200]'
+                          : 'bg-[#38BDF8]'
+                      }`}
+                    />
                     {pt.headline}
                   </h3>
                   <p className="text-xs text-slate-300 leading-relaxed">{pt.text}</p>
                   {pt.highlight && (
-                    <div className="mt-1 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-semibold">
+                    <div className="mt-1 px-3 py-2 rounded-xl bg-[#00F59B]/10 border border-[#00F59B]/20 text-[#00F59B] text-xs font-bold leading-snug">
                       💡 {pt.highlight}
                     </div>
                   )}
@@ -152,9 +157,9 @@ export const LessonModal: React.FC<LessonModalProps> = ({
               ))}
             </div>
 
-            {/* Author Quote (Gerchik style) */}
+            {/* Author Quote (Gerchik Gold Box) */}
             {lesson.theory.authorQuote && (
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 to-transparent border-l-4 border-amber-500 text-xs italic text-amber-200">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#FFD200]/10 via-[#0F1420] to-transparent border-l-4 border-[#FFD200] text-xs italic text-amber-200 shadow-md">
                 {lesson.theory.authorQuote}
               </div>
             )}
@@ -163,32 +168,32 @@ export const LessonModal: React.FC<LessonModalProps> = ({
 
         {/* STEP 2: QUIZ */}
         {currentStep === 'quiz' && (
-          <div className="w-full max-w-md flex flex-col gap-5 animate-fadeIn">
+          <div className="w-full max-w-md flex flex-col gap-5 animate-fadeIn pb-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+              <span className="text-xs font-black text-[#FFD200] bg-[#FFD200]/10 px-3 py-1 rounded-full border border-[#FFD200]/20">
                 Вопрос {currentQuizIdx + 1} из {lesson.quiz.length}
               </span>
             </div>
 
-            <h2 className="text-lg font-bold text-white">
+            <h2 className="text-lg font-black text-white leading-snug">
               {lesson.quiz[currentQuizIdx].question}
             </h2>
 
-            {/* Options */}
+            {/* Quiz Choices */}
             <div className="flex flex-col gap-3">
               {lesson.quiz[currentQuizIdx].options.map((opt, oIdx) => {
                 const isSelected = selectedQuizOption === oIdx;
                 const isCorrectOption = oIdx === lesson.quiz[currentQuizIdx].correctIndex;
 
-                let btnStyles = 'bg-slate-900 border-slate-800 text-slate-200 hover:border-slate-700';
+                let btnStyles = 'bg-[#0F1420] border-[#1E293B] text-slate-200 hover:border-slate-700';
 
                 if (isSelected && !isAnswerChecked) {
-                  btnStyles = 'bg-blue-600/20 border-blue-500 text-blue-300 ring-2 ring-blue-500/30';
+                  btnStyles = 'bg-[#38BDF8]/20 border-[#38BDF8] text-[#38BDF8] ring-2 ring-[#38BDF8]/40 shadow-lg';
                 } else if (isAnswerChecked) {
                   if (isCorrectOption) {
-                    btnStyles = 'bg-emerald-500/20 border-emerald-500 text-emerald-300 ring-2 ring-emerald-500/30';
+                    btnStyles = 'bg-[#00F59B]/20 border-[#00F59B] text-[#00F59B] ring-2 ring-[#00F59B]/40 shadow-lg';
                   } else if (isSelected && !isCorrectOption) {
-                    btnStyles = 'bg-red-500/20 border-red-500 text-red-300 ring-2 ring-red-500/30';
+                    btnStyles = 'bg-[#FF3366]/20 border-[#FF3366] text-[#FF3366] ring-2 ring-[#FF3366]/40 shadow-lg';
                   }
                 }
 
@@ -201,31 +206,31 @@ export const LessonModal: React.FC<LessonModalProps> = ({
                         haptic.selection();
                       }
                     }}
-                    className={`p-4 rounded-2xl border text-left text-xs font-semibold leading-relaxed transition-all flex items-center justify-between ${btnStyles}`}
+                    className={`p-4 rounded-2xl border text-left text-xs font-bold leading-relaxed transition-all flex items-center justify-between cursor-pointer ${btnStyles}`}
                   >
                     <span>{opt}</span>
                     {isAnswerChecked && isCorrectOption && (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-[#00F59B] shrink-0 ml-2" />
                     )}
                     {isAnswerChecked && isSelected && !isCorrectOption && (
-                      <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                      <AlertCircle className="w-5 h-5 text-[#FF3366] shrink-0 ml-2" />
                     )}
                   </button>
                 );
               })}
             </div>
 
-            {/* Explanation card after answer */}
+            {/* Explanation Feedback Card */}
             {isAnswerChecked && (
               <div
-                className={`p-4 rounded-2xl border text-xs leading-relaxed animate-fadeIn ${
+                className={`p-4 rounded-2xl border text-xs leading-relaxed animate-fadeIn shadow-lg ${
                   isCorrect
-                    ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-200'
-                    : 'bg-red-950/40 border-red-500/30 text-red-200'
+                    ? 'bg-[#00F59B]/10 border-[#00F59B]/40 text-emerald-200'
+                    : 'bg-[#FF3366]/10 border-[#FF3366]/40 text-rose-200'
                 }`}
               >
-                <div className="font-bold mb-1 flex items-center gap-1.5">
-                  {isCorrect ? '✨ Отлично!' : '⚠️ Обратите внимание:'}
+                <div className="font-extrabold mb-1 flex items-center gap-1.5">
+                  {isCorrect ? '✨ Абсолютно верно!' : '⚠️ Пояснение к вопросу:'}
                 </div>
                 {lesson.quiz[currentQuizIdx].explanation}
               </div>
@@ -233,23 +238,23 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           </div>
         )}
 
-        {/* STEP 3: PRACTICE ON REAL CHART */}
+        {/* STEP 3: INTERACTIVE CHART PRACTICE */}
         {currentStep === 'practice' && !isFinished && (
           <div className="w-full max-w-md flex flex-col h-full gap-3 animate-fadeIn">
-            <div className="p-3 bg-slate-900/90 border border-slate-800 rounded-2xl">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                Интерактивная практика
+            <div className="p-3.5 bg-[#0F1420] border border-[#1E293B] rounded-2xl shadow-md">
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#00F59B] bg-[#00F59B]/10 px-2.5 py-0.5 rounded-full border border-[#00F59B]/20">
+                Тренажер на графике
               </span>
-              <p className="text-xs font-bold text-white mt-1">
+              <p className="text-xs font-bold text-white mt-1.5 leading-snug">
                 {lesson.practice.instruction}
               </p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-slate-400 mt-1">
                 💡 {lesson.practice.hint}
               </p>
             </div>
 
-            {/* Live Chart Container */}
-            <div className="flex-1 w-full min-h-[340px]">
+            {/* TradingView Chart Container */}
+            <div className="flex-1 w-full min-h-[350px]">
               <TradingChart
                 candles={lesson.practice.initialCandles}
                 futureCandles={lesson.practice.futureCandles}
@@ -259,53 +264,53 @@ export const LessonModal: React.FC<LessonModalProps> = ({
                 tolerancePercent={lesson.practice.tolerancePercent}
                 expectedDirection={lesson.practice.expectedDirection}
                 onSuccess={handlePracticeSuccess}
-                onError={(err) => onLifeLost()}
+                onError={() => onLifeLost()}
               />
             </div>
           </div>
         )}
 
-        {/* STEP 4: CELEBRATION MODAL */}
+        {/* STEP 4: VICTORY CELEBRATION */}
         {isFinished && (
           <div className="w-full max-w-md flex flex-col items-center justify-center h-full py-8 text-center animate-fadeIn gap-6">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 flex items-center justify-center text-slate-950 shadow-2xl shadow-amber-500/30 animate-bounce">
+            <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-[#FFD200] to-[#F59E0B] flex items-center justify-center text-[#06080E] shadow-2xl shadow-[#FFD200]/30 animate-bounce">
               <Trophy className="w-12 h-12" />
             </div>
 
             <div>
               <div className="flex justify-center gap-1.5 mb-2">
-                <Star className="w-6 h-6 fill-amber-400 text-amber-400" />
-                <Star className="w-6 h-6 fill-amber-400 text-amber-400" />
-                <Star className="w-6 h-6 fill-amber-400 text-amber-400" />
+                <Star className="w-6 h-6 fill-[#FFD200] text-[#FFD200]" />
+                <Star className="w-6 h-6 fill-[#FFD200] text-[#FFD200]" />
+                <Star className="w-6 h-6 fill-[#FFD200] text-[#FFD200]" />
               </div>
               <h2 className="text-2xl font-black text-white">Уровень пройден!</h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Вы успешно освоили теорию и подтвердили навык на реальном графике.
+              <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto leading-relaxed">
+                Вы успешно закрепили теорию и выполнили практическое действие на реальных свечах!
               </p>
             </div>
 
-            {/* Rewards */}
+            {/* Reward Badges */}
             <div className="flex gap-4 w-full justify-center">
-              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 border border-slate-800">
-                <Sparkles className="w-5 h-5 text-emerald-400" />
+              <div className="flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-[#0F1420] border border-[#1E293B]">
+                <Sparkles className="w-5 h-5 text-[#00F59B]" />
                 <div className="text-left">
-                  <div className="text-[10px] text-slate-400">Опыт</div>
-                  <div className="text-base font-black text-white">+{lesson.xpReward} XP</div>
+                  <div className="text-[10px] text-slate-400 font-semibold">Опыт</div>
+                  <div className="text-base font-black text-white font-mono">+{lesson.xpReward} XP</div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-900 border border-slate-800">
+              <div className="flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-[#0F1420] border border-[#1E293B]">
                 <span className="text-xl">💰</span>
                 <div className="text-left">
-                  <div className="text-[10px] text-slate-400">Монеты</div>
-                  <div className="text-base font-black text-amber-400">+{lesson.coinReward}</div>
+                  <div className="text-[10px] text-slate-400 font-semibold">Монеты</div>
+                  <div className="text-base font-black text-[#FFD200] font-mono">+{lesson.coinReward}</div>
                 </div>
               </div>
             </div>
 
             <button
               onClick={handleFinishLesson}
-              className="w-full py-4 rounded-2xl font-extrabold text-sm text-slate-950 btn-3d-green mt-4 flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-2xl font-black text-sm btn-3d-bullish mt-4 flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>ПРОДОЛЖИТЬ ПУТЬ</span>
               <ArrowRight className="w-4 h-4" />
@@ -314,16 +319,16 @@ export const LessonModal: React.FC<LessonModalProps> = ({
         )}
       </div>
 
-      {/* Bottom Action Footer for Theory & Quiz */}
+      {/* Bottom Footer Button */}
       {!isFinished && currentStep !== 'practice' && (
-        <div className="p-4 bg-slate-950/90 border-t border-slate-800 max-w-md mx-auto w-full">
+        <div className="p-4 bg-[#06080E]/90 border-t border-[#1E293B] max-w-md mx-auto w-full">
           {currentStep === 'theory' && (
             <button
               onClick={() => {
                 setCurrentStep('quiz');
                 haptic.medium();
               }}
-              className="w-full py-3.5 rounded-2xl font-extrabold text-sm text-slate-950 btn-3d-green flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 rounded-2xl font-black text-sm btn-3d-bullish flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>ПЕРЕЙТИ К ТЕСТУ</span>
               <ArrowRight className="w-4 h-4" />
@@ -336,10 +341,10 @@ export const LessonModal: React.FC<LessonModalProps> = ({
                 <button
                   onClick={handleCheckQuiz}
                   disabled={selectedQuizOption === null}
-                  className={`w-full py-3.5 rounded-2xl font-extrabold text-sm transition-all ${
+                  className={`w-full py-3.5 rounded-2xl font-black text-sm transition-all ${
                     selectedQuizOption !== null
-                      ? 'btn-3d-green text-slate-950 cursor-pointer'
-                      : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                      ? 'btn-3d-bullish cursor-pointer'
+                      : 'bg-[#1E293B] text-slate-500 cursor-not-allowed'
                   }`}
                 >
                   ПРОВЕРИТЬ ОТВЕТ
@@ -347,9 +352,9 @@ export const LessonModal: React.FC<LessonModalProps> = ({
               ) : (
                 <button
                   onClick={handleNextQuiz}
-                  className="w-full py-3.5 rounded-2xl font-extrabold text-sm text-slate-950 btn-3d-blue flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3.5 rounded-2xl font-black text-sm btn-3d-cyan flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>{currentQuizIdx + 1 < lesson.quiz.length ? 'СЛЕДУЮЩИЙ ВОПРОС' : 'ПЕРЕЙТИ К ПРАКТИКЕ'}</span>
+                  <span>{currentQuizIdx + 1 < lesson.quiz.length ? 'СЛЕДУЮЩИЙ ВОПРОС' : 'ПЕРЕЙТИ К ГРАФИКУ'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}

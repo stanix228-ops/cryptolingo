@@ -18,7 +18,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ] as const;
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-slate-950/95 backdrop-blur-lg border-t border-slate-800/80 px-4 py-2 pb-safe select-none">
+    <nav className="fixed bottom-0 inset-x-0 z-40 bg-[#06080E]/95 backdrop-blur-2xl border-t border-[#1E293B] px-4 py-2 pb-safe select-none">
       <div className="max-w-md mx-auto flex items-center justify-around">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -31,20 +31,22 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 haptic.selection();
                 onChangeTab(tab.id);
               }}
-              className={`flex flex-col items-center gap-1 py-1 px-4 rounded-xl transition-all ${
+              className={`flex flex-col items-center gap-1 py-1.5 px-5 rounded-2xl transition-all duration-200 cursor-pointer ${
                 isActive
-                  ? 'text-emerald-400 font-extrabold'
-                  : 'text-slate-400 hover:text-slate-200 font-semibold'
+                  ? 'text-[#00F59B] font-black'
+                  : 'text-slate-400 hover:text-slate-200 font-bold'
               }`}
             >
               <div
-                className={`p-1 rounded-xl transition-all ${
-                  isActive ? 'bg-emerald-500/10 scale-110' : ''
+                className={`p-1.5 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? 'bg-[#00F59B]/15 text-[#00F59B] scale-110 shadow-lg shadow-[#00F59B]/20'
+                    : ''
                 }`}
               >
                 <Icon className="w-5 h-5" />
               </div>
-              <span className="text-[10px] tracking-tight">{tab.label}</span>
+              <span className="text-[11px] tracking-tight">{tab.label}</span>
             </button>
           );
         })}

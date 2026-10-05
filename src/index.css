@@ -2,86 +2,142 @@
 
 @layer base {
   :root {
-    --bg-primary: #0a0d14;
-    --bg-card: #111622;
-    --bg-card-hover: #171f30;
-    --accent-green: #10b981;
-    --accent-red: #ef4444;
-    --accent-yellow: #f59e0b;
-    --accent-blue: #3b82f6;
-    --accent-purple: #8b5cf6;
+    --bg-void: #06080e;
+    --bg-surface: #0f1420;
+    --bg-elevated: #172033;
+    --border-subtle: #1e293b;
+    --accent-bullish: #00f59b;
+    --accent-bearish: #ff3366;
+    --accent-gold: #ffd200;
+    --accent-cyan: #38bdf8;
+    --accent-purple: #a855f7;
   }
 
   * {
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: #06080e;
+    color: #f8fafc;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    overflow-x: hidden;
   }
 }
 
-/* Custom scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #0b0e14;
+  background: #06080e;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1f293d;
+  background: #1e293b;
   border-radius: 9999px;
 }
 
-/* Animated glow and pulse effects */
-@keyframes pulseGlow {
+/* Glassmorphism Classes */
+.glass-panel {
+  background: rgba(15, 20, 32, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(30, 41, 59, 0.8);
+}
+
+.glass-nav {
+  background: rgba(6, 8, 14, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(30, 41, 59, 0.8);
+}
+
+/* Neon Glow Animations */
+@keyframes neonPulseGreen {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2), inset 0 0 15px rgba(16, 185, 129, 0.1);
+    box-shadow: 0 0 15px rgba(0, 245, 155, 0.25), inset 0 0 10px rgba(0, 245, 155, 0.1);
   }
   50% {
-    box-shadow: 0 0 25px rgba(16, 185, 129, 0.4), inset 0 0 20px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 28px rgba(0, 245, 155, 0.5), inset 0 0 15px rgba(0, 245, 155, 0.25);
   }
 }
 
-.glow-emerald {
-  animation: pulseGlow 3s infinite ease-in-out;
+@keyframes neonPulseGold {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(255, 210, 0, 0.25), inset 0 0 10px rgba(255, 210, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(255, 210, 0, 0.5), inset 0 0 15px rgba(255, 210, 0, 0.25);
+  }
 }
 
-/* Duolingo-style 3D Button pressing effect */
-.btn-3d-green {
-  background-color: #10b981;
-  box-shadow: 0 4px 0 #059669;
-  transition: all 0.1s ease;
-}
-.btn-3d-green:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #059669;
+.glow-bullish {
+  animation: neonPulseGreen 2.5s infinite ease-in-out;
 }
 
-.btn-3d-blue {
-  background-color: #3b82f6;
-  box-shadow: 0 4px 0 #2563eb;
-  transition: all 0.1s ease;
-}
-.btn-3d-blue:active {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #2563eb;
+.glow-gold {
+  animation: neonPulseGold 2.5s infinite ease-in-out;
 }
 
-.btn-3d-yellow {
-  background-color: #f59e0b;
-  box-shadow: 0 4px 0 #d97706;
+/* 3D Tactile Buttons (Duolingo / Arcade Style) */
+.btn-3d-bullish {
+  background: linear-gradient(180deg, #00f59b 0%, #05d688 100%);
+  color: #06080e;
+  box-shadow: 0 4px 0 #049e64, 0 6px 12px rgba(0, 245, 155, 0.3);
   transition: all 0.1s ease;
+  font-weight: 800;
 }
-.btn-3d-yellow:active {
+.btn-3d-bullish:active {
   transform: translateY(3px);
-  box-shadow: 0 1px 0 #d97706;
+  box-shadow: 0 1px 0 #049e64, 0 2px 6px rgba(0, 245, 155, 0.2);
+}
+
+.btn-3d-bearish {
+  background: linear-gradient(180deg, #ff3366 0%, #e11d48 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 0 #9f1239, 0 6px 12px rgba(255, 51, 102, 0.3);
+  transition: all 0.1s ease;
+  font-weight: 800;
+}
+.btn-3d-bearish:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #9f1239, 0 2px 6px rgba(255, 51, 102, 0.2);
+}
+
+.btn-3d-gold {
+  background: linear-gradient(180deg, #ffd200 0%, #f59e0b 100%);
+  color: #06080e;
+  box-shadow: 0 4px 0 #b45309, 0 6px 12px rgba(255, 210, 0, 0.3);
+  transition: all 0.1s ease;
+  font-weight: 800;
+}
+.btn-3d-gold:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #b45309, 0 2px 6px rgba(255, 210, 0, 0.2);
+}
+
+.btn-3d-cyan {
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+  color: #06080e;
+  box-shadow: 0 4px 0 #0369a1, 0 6px 12px rgba(56, 189, 248, 0.3);
+  transition: all 0.1s ease;
+  font-weight: 800;
+}
+.btn-3d-cyan:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #0369a1, 0 2px 6px rgba(56, 189, 248, 0.2);
 }
 
 .btn-3d-dark {
-  background-color: #1e293b;
-  box-shadow: 0 4px 0 #0f172a;
+  background: linear-gradient(180deg, #1e293b 0%, #151d2c 100%);
+  color: #94a3b8;
+  box-shadow: 0 4px 0 #0b0f19;
   transition: all 0.1s ease;
 }
 .btn-3d-dark:active {
   transform: translateY(3px);
-  box-shadow: 0 1px 0 #0f172a;
+  box-shadow: 0 1px 0 #0b0f19;
 }
