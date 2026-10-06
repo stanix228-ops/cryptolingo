@@ -37,6 +37,12 @@ export interface PracticeScenario {
   minRiskReward?: number;
 }
 
+export interface LessonSchemaVisual {
+  type: 'candlestick' | 'support_resistance' | 'risk_reward' | 'orderbook' | 'trend_channel' | 'breakout' | 'fvg_liquidity' | 'double_pattern' | 'crown' | 'brain';
+  title: string;
+  caption: string;
+}
+
 export interface Lesson {
   id: string;
   moduleId: string;
@@ -48,14 +54,25 @@ export interface Lesson {
   theory: {
     title: string;
     badge: string;
+    introCase?: {
+      situation: string;
+      question: string;
+      takeaway: string;
+    };
     points: {
       headline: string;
       text: string;
       highlight?: string;
       badgeType?: 'bull' | 'bear' | 'warning' | 'info';
     }[];
+    schemaVisual?: LessonSchemaVisual;
+    checklist?: string[];
+    riskFormula?: {
+      formula: string;
+      example: string;
+    };
     proTip?: string;
-    authorQuote?: string; // e.g. Quotes from Gerchik / Course
+    authorQuote?: string;
   };
   quiz: QuizQuestion[];
   practice: PracticeScenario;
@@ -87,6 +104,7 @@ export interface UserProgress {
   isGlossaryUnlocked?: boolean;
   unlockedAchievements?: string[];
   claimedAchievements?: string[];
+  savedNotes?: string[]; // IDs of lessons saved to Trader Cheat Sheet
   tradingStats?: {
     totalTrades: number;
     winningTrades: number;

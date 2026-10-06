@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { UserProgress } from '../types';
-import { Share2, Zap, Flame, Check, Copy, Trophy, Award, Lock, ExternalLink, Heart, Plus, Sparkles } from 'lucide-react';
+import { Share2, Zap, Flame, Check, Copy, Trophy, Award, Lock, ExternalLink, Heart, Plus, Sparkles, Bookmark } from 'lucide-react';
 import { getTelegramUser, haptic, openTelegramLink, shareToTelegram, copyText } from '../services/telegram';
 import { ACHIEVEMENTS, type Achievement } from '../data/achievements';
 import { AchievementBadge } from './AchievementBadge';
@@ -10,6 +10,7 @@ interface ProfileViewProps {
   progress: UserProgress;
   onRefillLives: () => void;
   onOpenLivesShop: () => void;
+  onOpenNotes?: () => void;
   onClaimAchievement: (achId: string, rewardXp: number) => void;
   onClaimAllAchievements: () => void;
 }
@@ -17,6 +18,7 @@ interface ProfileViewProps {
 export const ProfileView: React.FC<ProfileViewProps> = ({
   progress,
   onOpenLivesShop,
+  onOpenNotes,
   onClaimAchievement,
   onClaimAllAchievements,
 }) => {
@@ -153,6 +155,31 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         >
           <Plus className="w-3 h-3 text-black stroke-[3]" />
           <span>КУПИТЬ ЗА XP</span>
+        </button>
+      </div>
+
+      {/* Trader Cheat Sheet / Notes Card */}
+      <div className="p-3.5 bg-black border border-white/25 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-neutral-950 border border-white/20 flex items-center justify-center text-white">
+            <Bookmark className="w-4 h-4 text-white" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[9px] text-neutral-400 uppercase font-bold">КОНСПЕКТ ТРЕЙДЕРА</span>
+            <span className="text-xs font-black text-white">
+              {(progress.savedNotes || []).length} СОХРАНЕННЫХ ШПАРГАЛОК
+            </span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            haptic.medium();
+            onOpenNotes?.();
+          }}
+          className="px-3 py-2 bg-neutral-900 border border-white/30 text-white font-black text-[10px] uppercase tracking-wider hover:bg-white hover:text-black transition-colors cursor-pointer flex items-center gap-1"
+        >
+          <span>ОТКРЫТЬ</span>
         </button>
       </div>
 

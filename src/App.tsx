@@ -7,6 +7,7 @@ import { GlossaryView } from './components/GlossaryView';
 import { ProfileView } from './components/ProfileView';
 import { GlossaryPromoModal } from './components/GlossaryPromoModal';
 import { LivesShopModal } from './components/LivesShopModal';
+import { NotesModal } from './components/NotesModal';
 import { ToastNotification, type ToastMessage } from './components/ToastNotification';
 import { BottomNav, type TabType } from './components/BottomNav';
 import { SplashReveal } from './components/SplashReveal';
@@ -32,6 +33,7 @@ const DEFAULT_PROGRESS: UserProgress = {
   isGlossaryUnlocked: false,
   unlockedAchievements: [],
   claimedAchievements: [],
+  savedNotes: [],
   tradingStats: {
     totalTrades: 0,
     winningTrades: 0,
@@ -52,6 +54,7 @@ export const App: React.FC = () => {
           ...DEFAULT_PROGRESS,
           ...parsed,
           claimedAchievements: parsed.claimedAchievements || [],
+          savedNotes: parsed.savedNotes || [],
           tradingStats: parsed.tradingStats || DEFAULT_PROGRESS.tradingStats,
         };
       }
@@ -65,6 +68,7 @@ export const App: React.FC = () => {
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [showGlossaryPromo, setShowGlossaryPromo] = useState<boolean>(false);
   const [showLivesShop, setShowLivesShop] = useState<boolean>(false);
+  const [showNotesModal, setShowNotesModal] = useState<boolean>(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = (title: string, subtitle?: string, xpAmount?: number, type: 'xp' | 'success' | 'info' = 'xp') => {
@@ -293,6 +297,24 @@ export const App: React.FC = () => {
     addToast('UPGRADE: МАКСИМУМ ЖИЗНЕЙ УВЕЛИЧЕН', `Новый лимит: ${(progress.maxLives || 5) + extraLives}`, undefined, 'success');
   };
 
+  // Toggle Save Note to Trader Cheat Sheet
+  const handleToggleSaveNote = (lessonId: string) => {
+    setProgress((prev) => {
+      const current = prev.savedNotes || [];
+      const exists = current.includes(lessonId);
+      const updated = exists ? current.filter((id) => id !== lessonId) : [...current, lessonId];
+      if (!exists) {
+        addToast('КОНСПЕКТ ОБНОВЛЕН', 'Урок сохранен в шпаргалку', undefined, 'info');
+      } else {
+        addToast('КОНСПЕКТ ОБНОВЛЕН', 'Урок удален из шпаргалки', undefined, 'info');
+      }
+      return {
+        ...prev,
+        savedNotes: updated,
+      };
+    });
+  };
+
   // Claim Individual Achievement XP
   const handleClaimAchievement = (achId: string, rewardXp: number) => {
     const ach = ACHIEVEMENTS.find((a) => a.id === achId);
@@ -427,6 +449,7 @@ export const App: React.FC = () => {
             progress={progress}
             onRefillLives={handleRefillLives}
             onOpenLivesShop={() => setShowLivesShop(true)}
+            onOpenNotes={() => setShowNotesModal(true)}
             onClaimAchievement={handleClaimAchievement}
             onClaimAllAchievements={handleClaimAllAchievements}
           />
@@ -439,10 +462,12 @@ export const App: React.FC = () => {
           lesson={activeLesson}
           lives={progress.lives}
           userXp={progress.xp}
+          isSavedInNotes={(progress.savedNotes || []).includes(activeLesson.id)}
           onClose={() => setActiveLesson(null)}
           onComplete={handleCompleteLesson}
           onLifeLost={handleLifeLost}
           onBuyLives={handleBuyLives}
+          onToggleSaveNote={handleToggleSaveNote}
         />
       )}
 
@@ -464,6 +489,17 @@ export const App: React.FC = () => {
           onClose={() => setShowLivesShop(false)}
           onBuyLives={handleBuyLives}
           onUpgradeMaxLives={handleUpgradeMaxLives}
+        />
+      )}
+
+      {/* Trader Cheat Sheet / Notes Modal */}
+      {showNotesModal && (
+        <NotesModal
+          progress={progress}
+          onClose={() => setShowNotesModal(false)}
+          onOpenLesson={(lesson) => {
+            setActiveLesson(lesson);
+          }}
         />
       )}
 
