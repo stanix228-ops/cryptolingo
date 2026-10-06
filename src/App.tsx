@@ -7,6 +7,7 @@ import { GlossaryView } from './components/GlossaryView';
 import { ProfileView } from './components/ProfileView';
 import { GlossaryPromoModal } from './components/GlossaryPromoModal';
 import { LivesShopModal } from './components/LivesShopModal';
+import { ToastNotification, type ToastMessage } from './components/ToastNotification';
 import { BottomNav, type TabType } from './components/BottomNav';
 import { SplashReveal } from './components/SplashReveal';
 import { COURSE_MODULES } from './data/courses';
@@ -64,6 +65,22 @@ export const App: React.FC = () => {
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [showGlossaryPromo, setShowGlossaryPromo] = useState<boolean>(false);
   const [showLivesShop, setShowLivesShop] = useState<boolean>(false);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const addToast = (title: string, subtitle?: string, xpAmount?: number, type: 'xp' | 'success' | 'info' = 'xp') => {
+    const newToast: ToastMessage = {
+      id: `${Date.now()}-${Math.random()}`,
+      title,
+      subtitle,
+      xpAmount,
+      type,
+    };
+    setToasts((prev) => [newToast, ...prev.slice(0, 2)]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
 
   useEffect(() => {
     initTelegramApp();
@@ -79,10 +96,11 @@ export const App: React.FC = () => {
     if (isUnlockedParam) {
       setProgress((prev) => ({
         ...prev,
-        xp: prev.xp + 100, // +100 XP referral bonus
+        xp: prev.xp + 100,
         referralCount: Math.max(1, (prev.referralCount || 0) + 1),
         isGlossaryUnlocked: true,
       }));
+      addToast('БОНУС РЕФЕРАЛА', 'Словарь разблокирован', 100, 'xp');
     }
 
     if (tabParam && ['lessons', 'simulator', 'glossary', 'profile'].includes(tabParam)) {
@@ -111,6 +129,7 @@ export const App: React.FC = () => {
           referralCount: Math.max(1, (prev.referralCount || 0) + 1),
           isGlossaryUnlocked: true,
         }));
+        addToast('СЛОВАРЬ РАЗБЛОКИРОВАН', 'Доступ открыт', 100, 'xp');
         setActiveTab('glossary');
       }
     }
@@ -143,15 +162,14 @@ export const App: React.FC = () => {
       const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 3600 * 24));
 
       if (diffDays === 1) {
-        // Consecutive streak day!
+        addToast('БОНУС СТРЕЙКА', `${(prev.streakDays || 1) + 1} дней подряд`, 25, 'xp');
         return {
           ...prev,
           streakDays: (prev.streakDays || 1) + 1,
           lastActiveDate: todayStr,
-          xp: prev.xp + 25, // Daily streak bonus XP!
+          xp: prev.xp + 25,
         };
       } else if (diffDays > 1) {
-        // Reset streak
         return {
           ...prev,
           streakDays: 1,
@@ -177,6 +195,7 @@ export const App: React.FC = () => {
       setProgress((prev) => {
         const max = prev.maxLives || 5;
         if (prev.lives < max) {
+          addToast('+1 ЖИЗНЬ ВОССТАНОВЛЕНА', 'Авто-регенерация', undefined, 'success');
           return {
             ...prev,
             lives: Math.min(max, prev.lives + 1),
@@ -193,6 +212,7 @@ export const App: React.FC = () => {
     if (!activeLesson) return;
 
     const completedLessonId = activeLesson.id;
+    const reward = activeLesson.xpReward;
 
     setProgress((prev) => {
       const newCompleted = {
@@ -218,12 +238,13 @@ export const App: React.FC = () => {
 
       return {
         ...prev,
-        xp: prev.xp + activeLesson.xpReward,
+        xp: prev.xp + reward,
         coins: prev.coins + activeLesson.coinReward,
         completedLessons: newCompleted,
       };
     });
 
+    addToast('УРОК СДАН', activeLesson.title, reward, 'xp');
     setActiveLesson(null);
   };
 
@@ -240,6 +261,7 @@ export const App: React.FC = () => {
       ...prev,
       lives: prev.maxLives || 5,
     }));
+    addToast('ЖИЗНИ ВОССТАНОВЛЕНЫ', 'Полный комплект (5/5)', undefined, 'success');
   };
 
   // Buy Lives with XP
@@ -253,6 +275,7 @@ export const App: React.FC = () => {
         lives: Math.min(max, prev.lives + amount),
       };
     });
+    addToast(`+${amount} ЖИЗНЕЙ ПОПОЛНЕНО`, `Списано -${xpCost} XP`, undefined, 'success');
   };
 
   // Upgrade Max Lives with XP
@@ -267,10 +290,12 @@ export const App: React.FC = () => {
         lives: newMax,
       };
     });
+    addToast('UPGRADE: МАКСИМУМ ЖИЗНЕЙ УВЕЛИЧЕН', `Новый лимит: ${(progress.maxLives || 5) + extraLives}`, undefined, 'success');
   };
 
   // Claim Individual Achievement XP
   const handleClaimAchievement = (achId: string, rewardXp: number) => {
+    const ach = ACHIEVEMENTS.find((a) => a.id === achId);
     setProgress((prev) => {
       const claimed = prev.claimedAchievements || [];
       if (claimed.includes(achId)) return prev;
@@ -281,6 +306,7 @@ export const App: React.FC = () => {
         claimedAchievements: [...claimed, achId],
       };
     });
+    addToast('НАГРАДА ПОЛУЧЕНА', ach?.title || 'Достижение разблокировано', rewardXp, 'xp');
   };
 
   // Claim All Unclaimed Achievements XP
@@ -297,6 +323,7 @@ export const App: React.FC = () => {
       const newClaimedIds = unclaimed.map((ach) => ach.id);
 
       haptic.success();
+      addToast('ВСЕ НАГРАДЫ ПОЛУЧЕНЫ', `Забрано ${unclaimed.length} наград`, totalXp, 'xp');
       return {
         ...prev,
         xp: prev.xp + totalXp,
@@ -307,6 +334,8 @@ export const App: React.FC = () => {
 
   // Terminal Trade complete callback
   const handleTradeComplete = (stats: { isWin: boolean; pnlUsd: number; leverage: number }) => {
+    const earnedXp = stats.isWin ? 10 : 2;
+
     setProgress((prev) => {
       const prevStats = prev.tradingStats || {
         totalTrades: 0,
@@ -322,15 +351,18 @@ export const App: React.FC = () => {
         totalPnlUsd: Number((prevStats.totalPnlUsd + stats.pnlUsd).toFixed(2)),
       };
 
-      // Award XP for trade activity: +10 XP for profitable trade, +2 XP for trade execution
-      const earnedXp = stats.isWin ? 10 : 2;
-
       return {
         ...prev,
         xp: prev.xp + earnedXp,
         tradingStats: newStats,
       };
     });
+
+    if (stats.isWin) {
+      addToast('ПРИБЫЛЬНАЯ СДЕЛКА', `PnL: +$${stats.pnlUsd}`, 10, 'xp');
+    } else {
+      addToast('СДЕЛКА ИСПОЛНЕНА', `Плечо ${stats.leverage}x`, 2, 'xp');
+    }
   };
 
   const handleUnlockGlossary = () => {
@@ -340,10 +372,14 @@ export const App: React.FC = () => {
       referralCount: Math.max(1, (prev.referralCount || 0) + 1),
       isGlossaryUnlocked: true,
     }));
+    addToast('СЛОВАРЬ РАЗБЛОКИРОВАН', 'Полный доступ открыт', 100, 'xp');
   };
 
   return (
     <div className="min-h-screen bg-[#06080E] text-slate-100 flex flex-col selection:bg-white/20 font-sans">
+      {/* Real-time Toast Notifications */}
+      <ToastNotification toasts={toasts} onDismiss={removeToast} />
+
       {/* Intro Splash Video on launch */}
       {showSplash && (
         <SplashReveal onComplete={() => setShowSplash(false)} />

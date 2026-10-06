@@ -712,38 +712,59 @@ export const SimulatorView: React.FC<SimulatorViewProps> = ({ onTradeComplete })
           </div>
         </div>
 
-        {/* Calculations preview */}
-        <div className="p-2 border border-white/10 bg-neutral-950 text-[10px] flex justify-between text-neutral-400">
-          <div>
-            <span>ЛИКВ. LONG: </span>
-            <span className="text-white font-bold">${estLiqLong}</span>
+        {/* High-Clarity Risk & Margin Breakdown Calculator */}
+        <div className="p-3 border border-white/20 bg-neutral-950 text-[11px] flex flex-col gap-1.5 font-mono">
+          <div className="flex items-center justify-between border-b border-white/10 pb-1 text-[10px]">
+            <span className="text-white font-black uppercase">РАСЧЕТ И ОЦЕНКА РИСКА</span>
+            <span className="text-neutral-400">ПЛЕЧО: {leverage}x</span>
           </div>
-          <div>
-            <span>ЛИКВ. SHORT: </span>
-            <span className="text-white font-bold">${estLiqShort}</span>
+
+          <div className="flex justify-between text-neutral-300">
+            <span>• Реальный объем в рынке:</span>
+            <span className="text-white font-bold">${(inputAmountNum * leverage).toLocaleString()}</span>
+          </div>
+
+          <div className="flex justify-between text-neutral-300">
+            <span>• Списание с депозита (Залог/Маржа):</span>
+            <span className="text-white font-bold">${marginRequired}</span>
+          </div>
+
+          <div className="flex justify-between text-neutral-400 text-[10px] pt-1 border-t border-white/10">
+            <span>Ликвидация LONG: <b className="text-white">${estLiqLong}</b></span>
+            <span>Ликвидация SHORT: <b className="text-white">${estLiqShort}</b></span>
           </div>
         </div>
 
-        {/* EXECUTE BUTTONS: LONG / SHORT */}
-        <div className="grid grid-cols-2 gap-2 pt-1">
+        {/* EXECUTE BUTTONS: LONG / SHORT with Clear Margin Display */}
+        <div className="grid grid-cols-2 gap-2 pt-1 font-mono">
           <button
             type="button"
             onClick={() => handleOpenPosition('LONG')}
-            className="py-3.5 bg-white text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border border-white hover:bg-neutral-200 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+            className="py-3 px-2 bg-white text-black font-black text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-0.5 border border-white hover:bg-neutral-200 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
           >
-            <div className="w-2.5 h-2.5 bg-[#00C076]" />
-            <span>LONG / КУПИТЬ</span>
-            <ArrowUpRight className="w-4 h-4 text-black" />
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 bg-[#00C076]" />
+              <span>LONG // НА РОСТ</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-black" />
+            </div>
+            <span className="text-[10px] font-bold text-neutral-800">
+              ЗАЛОГ: ${marginRequired}
+            </span>
           </button>
 
           <button
             type="button"
             onClick={() => handleOpenPosition('SHORT')}
-            className="py-3.5 bg-neutral-900 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border border-white/40 hover:border-white active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+            className="py-3 px-2 bg-neutral-900 text-white font-black text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-0.5 border border-white/40 hover:border-white active:scale-[0.98] transition-all cursor-pointer shadow-sm"
           >
-            <div className="w-2.5 h-2.5 bg-[#FF3B30]" />
-            <span>SHORT / ПРОДАТЬ</span>
-            <ArrowDownRight className="w-4 h-4 text-white" />
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 bg-[#FF3B30]" />
+              <span>SHORT // НА ПАДЕНИЕ</span>
+              <ArrowDownRight className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="text-[10px] font-bold text-neutral-400">
+              ЗАЛОГ: ${marginRequired}
+            </span>
           </button>
         </div>
       </div>

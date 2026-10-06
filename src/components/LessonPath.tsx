@@ -17,6 +17,8 @@ import {
   ShieldCheck,
   Brain,
   Crown,
+  Zap,
+  ArrowRight,
 } from 'lucide-react';
 import { haptic } from '../services/telegram';
 
@@ -26,29 +28,28 @@ interface LessonPathProps {
   onSelectLesson: (lesson: Lesson) => void;
 }
 
-// Map each module to a dedicated thematic Lucide icon in Swiss Bauhaus style
 const getModuleIcon = (moduleNumber: number) => {
   switch (moduleNumber) {
     case 1:
-      return Layers; // 01: Цифровая валюта и блокчейн
+      return Layers;
     case 2:
-      return Sliders; // 02: Устройство бирж и ордера
+      return Sliders;
     case 3:
-      return Flame; // 03: Чтение графиков и свечи
+      return Flame;
     case 4:
-      return TrendingUp; // 04: Уровни и тренды
+      return TrendingUp;
     case 5:
-      return Crosshair; // 05: Price Action и структура
+      return Crosshair;
     case 6:
-      return Triangle; // 06: Графические паттерны
+      return Triangle;
     case 7:
-      return Activity; // 07: Индикаторы и объемы
+      return Activity;
     case 8:
-      return ShieldCheck; // 08: Риск-менеджмент
+      return ShieldCheck;
     case 9:
-      return Brain; // 09: Психология и дисциплина
+      return Brain;
     case 10:
-      return Crown; // 10: Web3 и экспертные стратегии
+      return Crown;
     default:
       return BookOpen;
   }
@@ -60,7 +61,6 @@ export const LessonPath: React.FC<LessonPathProps> = ({
   onSelectLesson,
 }) => {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
-  // Track open/collapsed module IDs (default: module-1 is open)
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
     'module-1': true,
   });
@@ -69,6 +69,22 @@ export const LessonPath: React.FC<LessonPathProps> = ({
   const totalLessons = allLessons.length;
   const completedTotal = allLessons.filter((l) => progress.completedLessons[l.id]).length;
   const progressPercent = Math.round((completedTotal / (totalLessons || 1)) * 100);
+
+  // Find the current active/next uncompleted lesson
+  let nextLesson: Lesson = allLessons[0];
+  let nextModuleNumber = 1;
+  let nextLessonIndex = 1;
+
+  for (let mIdx = 0; mIdx < modules.length; mIdx++) {
+    const mod = modules[mIdx];
+    const uncompleted = mod.lessons.find((l) => !progress.completedLessons[l.id]);
+    if (uncompleted) {
+      nextLesson = uncompleted;
+      nextModuleNumber = mod.number;
+      nextLessonIndex = mod.lessons.indexOf(uncompleted) + 1;
+      break;
+    }
+  }
 
   const isLessonUnlocked = (moduleIndex: number, lessonIndex: number) => {
     if (moduleIndex === 0 && lessonIndex === 0) return true;
@@ -104,42 +120,63 @@ export const LessonPath: React.FC<LessonPathProps> = ({
 
   return (
     <div className="flex flex-col max-w-md mx-auto px-3 py-4 pb-28 gap-4 select-none font-sans text-white">
-      {/* Academy Specification Header */}
-      <div className="p-4 bg-black border border-white/25 flex flex-col gap-3">
-        <div className="flex items-center justify-between border-b border-white/15 pb-2">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-3.5 h-3.5 text-white" />
-            <span className="font-mono text-[11px] font-bold tracking-widest uppercase text-white">
-              CRYPTOLINGO // ACADEMY
-            </span>
+      {/* 1. NEXT STEP BANNER (Быстрый старт в 1 клик) */}
+      <div className="p-4 bg-black border-2 border-white flex flex-col gap-3 shadow-lg">
+        <div className="flex items-center justify-between border-b border-white/20 pb-2">
+          <div className="flex items-center gap-1.5 font-mono text-[10px] font-bold">
+            <span className="w-2 h-2 bg-white inline-block animate-ping" />
+            <span className="tracking-widest uppercase text-white">ТЕКУЩАЯ ЦЕЛЬ ОБУЧЕНИЯ</span>
           </div>
-          <span className="font-mono text-[10px] font-bold text-black bg-white px-1.5 py-0.5">
-            [ {completedTotal < 10 ? `0${completedTotal}` : completedTotal} / {totalLessons < 10 ? `0${totalLessons}` : totalLessons} УРОКОВ ]
+          <span className="font-mono text-[10px] font-bold bg-white text-black px-1.5 py-0.5">
+            МОДУЛЬ 0{nextModuleNumber} // ШАГ {nextLessonIndex}
           </span>
         </div>
 
         <div>
-          <h1 className="text-sm font-black uppercase tracking-wider leading-tight text-white">
-            10 Глав // 100 Уроков Трейдинга
-          </h1>
-          <p className="text-[11px] text-neutral-400 font-mono mt-0.5 leading-relaxed">
-            Нажмите на модуль, чтобы открыть список уроков и начать обучение.
+          <h2 className="text-sm font-black uppercase tracking-wide text-white leading-snug">
+            {nextLesson.title}
+          </h2>
+          <p className="text-xs text-neutral-300 font-sans leading-relaxed mt-1">
+            {nextLesson.shortDesc}
           </p>
         </div>
 
-        {/* Solid Segmented Block Progress Bar */}
-        <div className="flex flex-col gap-1 pt-1">
-          <div className="flex justify-between font-mono text-[10px] text-neutral-400">
-            <span>ОБЩИЙ ПРОГРЕСС КУРСА</span>
-            <span className="font-bold text-white">{progressPercent}%</span>
-          </div>
-          <div className="font-mono text-xs tracking-tighter text-white select-none">
-            [ {progressBlocks} ]
-          </div>
+        <div className="flex items-center justify-between pt-1 border-t border-white/10 font-mono text-[10px] text-neutral-400">
+          <span className="flex items-center gap-1 text-white">
+            <Zap className="w-3 h-3 fill-white text-white" />
+            +{nextLesson.xpReward} XP НАГРАДА
+          </span>
+          <span>ВРЕМЯ: ~3 МИН</span>
+        </div>
+
+        {/* Primary CTA Button */}
+        <button
+          onClick={() => {
+            haptic.heavy();
+            onSelectLesson(nextLesson);
+          }}
+          className="w-full py-3 bg-white text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-neutral-200 transition-colors cursor-pointer border border-white"
+        >
+          <span>[ ПРОДОЛЖИТЬ ОБУЧЕНИЕ ]</span>
+          <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+        </button>
+      </div>
+
+      {/* 2. Academy Overall Progress Bar */}
+      <div className="p-3.5 bg-black border border-white/20 flex flex-col gap-2 font-mono">
+        <div className="flex items-center justify-between text-[10px]">
+          <span className="text-neutral-400 uppercase">ПРОГРЕСС АКАДЕМИИ (100 УРОКОВ)</span>
+          <span className="font-bold text-white">
+            {completedTotal} / {totalLessons} УРОКОВ ({progressPercent}%)
+          </span>
+        </div>
+
+        <div className="font-mono text-xs tracking-tighter text-white select-none">
+          [ {progressBlocks} ]
         </div>
       </div>
 
-      {/* Module Filter Pills */}
+      {/* 3. Module Filter Pills */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 font-mono text-[10px] no-scrollbar">
         <button
           onClick={() => {
@@ -165,7 +202,6 @@ export const LessonPath: React.FC<LessonPathProps> = ({
               onClick={() => {
                 haptic.selection();
                 setSelectedFilter(mod.id);
-                // Auto-expand this module when filtered
                 setExpandedModules((prev) => ({ ...prev, [mod.id]: true }));
               }}
               className={`px-2 py-1.5 border font-bold uppercase whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer ${
@@ -181,7 +217,7 @@ export const LessonPath: React.FC<LessonPathProps> = ({
         })}
       </div>
 
-      {/* Expandable Modules Accordion List */}
+      {/* 4. Expandable Modules Accordion List */}
       <div className="flex flex-col gap-3">
         {filteredModules.map((module, mIdx) => {
           const modCompleted = module.lessons.filter((l) => progress.completedLessons[l.id]).length;
@@ -309,7 +345,7 @@ export const LessonPath: React.FC<LessonPathProps> = ({
                               {lesson.title}
                             </h3>
 
-                            <p className="text-[10px] text-neutral-400 font-sans leading-tight mt-0.5 line-clamp-1">
+                            <p className="text-[11px] text-neutral-400 font-sans leading-tight mt-0.5 line-clamp-1">
                               {lesson.shortDesc}
                             </p>
 

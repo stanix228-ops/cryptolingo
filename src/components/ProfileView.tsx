@@ -156,6 +156,60 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         </button>
       </div>
 
+      {/* Rank Privileges & Level-Up Roadmap */}
+      <div className="p-3.5 bg-black border border-white/20 flex flex-col gap-2.5">
+        <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
+          <span className="text-[10px] font-bold text-white uppercase tracking-wider">
+            ПРИВИЛЕГИИ РАНГОВ ТРЕЙДЕРА
+          </span>
+          <span className="text-[9px] bg-white text-black font-bold px-1">[ ROADMAP ]</span>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          {/* Level 01 */}
+          <div className={`p-2 border flex items-center justify-between gap-2 text-[10px] ${progress.xp < 350 ? 'border-white bg-neutral-950' : 'border-white/20 bg-black opacity-60'}`}>
+            <div className="flex flex-col">
+              <span className="font-bold text-white uppercase">LVL 01: JUNIOR TRADER (0+ XP)</span>
+              <span className="text-[9px] text-neutral-400 font-sans">Базовый доступ к 100 урокам, лимит 5 жизней</span>
+            </div>
+            <span className="font-bold text-white shrink-0">{progress.xp >= 0 ? '[ АКТИВЕН ]' : '[ ЗАКРЫТ ]'}</span>
+          </div>
+
+          {/* Level 02 */}
+          <div className={`p-2 border flex items-center justify-between gap-2 text-[10px] ${progress.xp >= 350 && progress.xp < 1000 ? 'border-white bg-neutral-950' : 'border-white/20 bg-black'}`}>
+            <div className="flex flex-col">
+              <span className="font-bold text-white uppercase">LVL 02: ADVANCED TRADER (350+ XP)</span>
+              <span className="text-[9px] text-neutral-400 font-sans">+1 слот к макс. жизням (до 6), значок верификации</span>
+            </div>
+            <span className={`font-bold shrink-0 ${progress.xp >= 350 ? 'text-white' : 'text-neutral-500'}`}>
+              {progress.xp >= 350 ? '[ АКТИВЕН ]' : '[ 350 XP ]'}
+            </span>
+          </div>
+
+          {/* Level 03 */}
+          <div className={`p-2 border flex items-center justify-between gap-2 text-[10px] ${progress.xp >= 1000 && progress.xp < 2000 ? 'border-white bg-neutral-950' : 'border-white/20 bg-black'}`}>
+            <div className="flex flex-col">
+              <span className="font-bold text-white uppercase">LVL 03: PRO TRADER (1,000+ XP)</span>
+              <span className="text-[9px] text-neutral-400 font-sans">Скидка -20% на жизни, PRO-индикаторы в терминале</span>
+            </div>
+            <span className={`font-bold shrink-0 ${progress.xp >= 1000 ? 'text-white' : 'text-neutral-500'}`}>
+              {progress.xp >= 1000 ? '[ АКТИВЕН ]' : '[ 1,000 XP ]'}
+            </span>
+          </div>
+
+          {/* Level 04 */}
+          <div className={`p-2 border flex items-center justify-between gap-2 text-[10px] ${progress.xp >= 2000 ? 'border-white bg-neutral-950' : 'border-white/20 bg-black'}`}>
+            <div className="flex flex-col">
+              <span className="font-bold text-white uppercase">LVL 04: SENIOR TRADER (2,000+ XP)</span>
+              <span className="text-[9px] text-neutral-400 font-sans">Полный доступ ко всем экспертным стратегиям</span>
+            </div>
+            <span className={`font-bold shrink-0 ${progress.xp >= 2000 ? 'text-white' : 'text-neutral-500'}`}>
+              {progress.xp >= 2000 ? '[ АКТИВЕН ]' : '[ 2,000 XP ]'}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* 4 Stats Grid */}
       <div className="grid grid-cols-2 gap-2">
         <div className="p-3 bg-black border border-white/20 flex items-center gap-2.5">
