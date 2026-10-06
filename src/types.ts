@@ -85,4 +85,11 @@ export interface UserProgress {
   equippedTitle: string;
   referralCount?: number;
   isGlossaryUnlocked?: boolean;
+  unlockedAchievements?: string[];
+  tradingStats?: {
+    totalTrades: number;
+    winningTrades: number;
+    maxLeverageUsed: number;
+    totalPnlUsd: number;
+  };
 }
