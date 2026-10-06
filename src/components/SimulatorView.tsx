@@ -10,16 +10,15 @@ import {
 import {
   TrendingUp,
   TrendingDown,
-  RefreshCw,
-  Sliders,
   DollarSign,
   ArrowUpRight,
   ArrowDownRight,
   Activity,
-  Check,
-  X,
-  Play,
   RotateCcw,
+  Plus,
+  Minus,
+  Check,
+  ChevronDown,
 } from 'lucide-react';
 import { haptic } from '../services/telegram';
 
@@ -113,18 +112,40 @@ interface ClosedTrade {
   timestamp: number;
 }
 
-const generateInitialCandles = (basePrice: number, count = 40) => {
+const getTimeframeSeconds = (tf: string) => {
+  switch (tf) {
+    case '1m':
+      return 60;
+    case '5m':
+      return 300;
+    case '15m':
+      return 900;
+    case '1H':
+      return 3600;
+    case '4H':
+      return 14400;
+    case '1D':
+      return 86400;
+    default:
+      return 900;
+  }
+};
+
+const generateInitialCandles = (basePrice: number, tf: string, count = 45) => {
+  const stepSeconds = getTimeframeSeconds(tf);
   const candles = [];
-  let current = basePrice * 0.94;
-  const now = Math.floor(Date.now() / 1000) - count * 60;
+  let current = basePrice * (0.95 + Math.random() * 0.03);
+  const now = Math.floor(Date.now() / 1000) - count * stepSeconds;
+
+  const volatilityFactor = tf === '1m' ? 0.0015 : tf === '1D' ? 0.015 : 0.004;
 
   for (let i = 0; i < count; i++) {
-    const time = now + i * 60;
-    const delta = (Math.random() - 0.48) * (basePrice * 0.0035);
+    const time = now + i * stepSeconds;
+    const delta = (Math.random() - 0.49) * (basePrice * volatilityFactor);
     const open = current;
     const close = open + delta;
-    const high = Math.max(open, close) + Math.random() * (basePrice * 0.002);
-    const low = Math.min(open, close) - Math.random() * (basePrice * 0.002);
+    const high = Math.max(open, close) + Math.random() * (basePrice * volatilityFactor * 0.7);
+    const low = Math.min(open, close) - Math.random() * (basePrice * volatilityFactor * 0.7);
 
     current = close;
     candles.push({
@@ -148,19 +169,26 @@ export const SimulatorView: React.FC = () => {
   const [openPositions, setOpenPositions] = useState<Position[]>([]);
   const [closedTrades, setClosedTrades] = useState<ClosedTrade[]>([]);
   const [activeTab, setActiveTab] = useState<'positions' | 'history' | 'orderbook'>('positions');
+  const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const lastCandleRef = useRef<any>(null);
+  const orderSectionRef = useRef<HTMLDivElement>(null);
 
-  // Initialize or update Chart when pair changes
+  // Initialize or re-create Chart when selectedPair OR timeframe changes
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
     if (chartRef.current) {
-      chartRef.current.remove();
+      try {
+        chartRef.current.remove();
+      } catch (e) {
+        console.warn('Error cleaning up chart', e);
+      }
       chartRef.current = null;
+      seriesRef.current = null;
     }
 
     const chart = createChart(chartContainerRef.current, {
@@ -199,7 +227,7 @@ export const SimulatorView: React.FC = () => {
       wickDownColor: '#FF3B30',
     });
 
-    const initialData = generateInitialCandles(selectedPair.basePrice, 40);
+    const initialData = generateInitialCandles(selectedPair.basePrice, timeframe, 45);
     series.setData(initialData);
     chart.timeScale().fitContent();
 
@@ -209,24 +237,31 @@ export const SimulatorView: React.FC = () => {
     setCurrentPrice(lastCandleRef.current.close);
 
     const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+      if (chartContainerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth });
       }
     };
+
     window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(chartContainerRef.current);
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      chart.remove();
+      resizeObserver.disconnect();
+      if (chartRef.current) {
+        chartRef.current.remove();
+        chartRef.current = null;
+      }
     };
-  }, [selectedPair]);
+  }, [selectedPair, timeframe]);
 
   // Live real-time price & candlestick simulation loop
   useEffect(() => {
     const interval = setInterval(() => {
       if (!seriesRef.current || !lastCandleRef.current) return;
 
-      const deltaPercent = (Math.random() - 0.495) * 0.0015;
+      const deltaPercent = (Math.random() - 0.495) * 0.0018;
       const newClose = Number((lastCandleRef.current.close * (1 + deltaPercent)).toFixed(selectedPair.decimals));
       const newHigh = Math.max(lastCandleRef.current.high, newClose);
       const newLow = Math.min(lastCandleRef.current.low, newClose);
@@ -244,20 +279,44 @@ export const SimulatorView: React.FC = () => {
     }, 600);
 
     return () => clearInterval(interval);
-  }, [selectedPair]);
+  }, [selectedPair, timeframe]);
 
   // Calculations for current input
-  const inputAmountNum = Number(orderAmount) || 0;
+  const inputAmountNum = Math.max(0, Number(orderAmount) || 0);
   const marginRequired = leverage > 0 ? Number((inputAmountNum / leverage).toFixed(2)) : 0;
-  const estLiqLong = currentPrice > 0 ? Number((currentPrice * (1 - 0.9 / leverage)).toFixed(selectedPair.decimals)) : 0;
-  const estLiqShort = currentPrice > 0 ? Number((currentPrice * (1 + 0.9 / leverage)).toFixed(selectedPair.decimals)) : 0;
+  const estLiqLong =
+    currentPrice > 0
+      ? Number((currentPrice * (1 - 0.9 / leverage)).toFixed(selectedPair.decimals))
+      : 0;
+  const estLiqShort =
+    currentPrice > 0
+      ? Number((currentPrice * (1 + 0.9 / leverage)).toFixed(selectedPair.decimals))
+      : 0;
+
+  // Amount steppers & quick presets
+  const handleAdjustAmount = (delta: number) => {
+    haptic.selection();
+    const current = Number(orderAmount) || 0;
+    const next = Math.max(10, current + delta);
+    setOrderAmount(String(next));
+  };
+
+  const handlePercentPreset = (percent: number) => {
+    haptic.selection();
+    const maxMargin = balance * (percent / 100);
+    const notional = Math.round(maxMargin * leverage);
+    setOrderAmount(String(Math.max(10, notional)));
+  };
 
   // Open Position
   const handleOpenPosition = (direction: 'LONG' | 'SHORT') => {
-    if (marginRequired <= 0) return;
+    if (marginRequired <= 0) {
+      alert('Укажите сумму ордера больше 0');
+      return;
+    }
     if (marginRequired > balance) {
       haptic.error();
-      alert('Недостаточно свободной маржи на балансе!');
+      alert(`Недостаточно маржи! Требуется: $${marginRequired}, доступно: $${balance}`);
       return;
     }
 
@@ -287,7 +346,7 @@ export const SimulatorView: React.FC = () => {
         ? currentPrice - pos.entryPrice
         : pos.entryPrice - currentPrice;
     const pnlPercent = (priceDiff / pos.entryPrice) * pos.leverage * 100;
-    const pnlUsd = (pos.amountUsd * (priceDiff / pos.entryPrice));
+    const pnlUsd = pos.amountUsd * (priceDiff / pos.entryPrice);
     const totalReturn = Math.max(0, pos.margin + pnlUsd);
 
     const closed: ClosedTrade = {
@@ -329,20 +388,20 @@ export const SimulatorView: React.FC = () => {
 
   // Generate simulated Orderbook based on currentPrice
   const orderbookAsks = [
-    { price: currentPrice * 1.0018, amount: 0.84, total: 56.7 },
-    { price: currentPrice * 1.0012, amount: 1.45, total: 98.2 },
-    { price: currentPrice * 1.0008, amount: 2.18, total: 147.1 },
-    { price: currentPrice * 1.0004, amount: 0.95, total: 64.2 },
+    { price: currentPrice * 1.0018, amount: 0.84 },
+    { price: currentPrice * 1.0012, amount: 1.45 },
+    { price: currentPrice * 1.0008, amount: 2.18 },
+    { price: currentPrice * 1.0004, amount: 0.95 },
   ];
   const orderbookBids = [
-    { price: currentPrice * 0.9996, amount: 1.12, total: 75.4 },
-    { price: currentPrice * 0.9992, amount: 2.85, total: 192.1 },
-    { price: currentPrice * 0.9988, amount: 1.64, total: 110.5 },
-    { price: currentPrice * 0.9982, amount: 3.40, total: 229.3 },
+    { price: currentPrice * 0.9996, amount: 1.12 },
+    { price: currentPrice * 0.9992, amount: 2.85 },
+    { price: currentPrice * 0.9988, amount: 1.64 },
+    { price: currentPrice * 0.9982, amount: 3.4 },
   ];
 
   return (
-    <div className="flex flex-col max-w-md mx-auto px-3 py-4 pb-28 gap-3.5 select-none font-sans text-white">
+    <div className="flex flex-col max-w-md mx-auto px-3 py-4 pb-72 gap-3.5 select-none font-sans text-white">
       {/* Top Header & Account Stats */}
       <div className="p-3.5 bg-black border border-white/25 flex flex-col gap-2.5">
         <div className="flex items-center justify-between border-b border-white/15 pb-2">
@@ -351,8 +410,9 @@ export const SimulatorView: React.FC = () => {
             <span className="tracking-widest uppercase">CRYPTOLINGO // TERMINAL</span>
           </div>
           <button
+            type="button"
             onClick={handleResetBalance}
-            className="flex items-center gap-1 px-1.5 py-0.5 border border-white/20 text-[10px] font-mono hover:border-white transition-all cursor-pointer text-neutral-400 hover:text-white"
+            className="flex items-center gap-1 px-2 py-0.5 border border-white/20 text-[10px] font-mono hover:border-white transition-all cursor-pointer text-neutral-400 hover:text-white"
           >
             <RotateCcw className="w-2.5 h-2.5" />
             <span>СБРОС $10K</span>
@@ -384,87 +444,98 @@ export const SimulatorView: React.FC = () => {
         </div>
       </div>
 
-      {/* Crypto Asset Selector Bar */}
+      {/* Crypto Asset Selector Bar (Clickable Tab Pills) */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 font-mono text-[11px] no-scrollbar">
-        {MARKET_PAIRS.map((pair) => (
-          <button
-            key={pair.symbol}
-            onClick={() => {
-              haptic.selection();
-              setSelectedPair(pair);
-            }}
-            className={`px-2.5 py-1.5 border font-bold uppercase transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-              selectedPair.symbol === pair.symbol
-                ? 'bg-white text-black border-white'
-                : 'bg-black text-neutral-400 border-white/15 hover:border-white hover:text-white'
-            }`}
-          >
-            <span>{pair.symbol}</span>
-            <span
-              className={`text-[9px] ${
-                selectedPair.symbol === pair.symbol
-                  ? 'text-neutral-700'
-                  : pair.change24h >= 0
-                  ? 'text-[#00C076]'
-                  : 'text-[#FF3B30]'
+        {MARKET_PAIRS.map((pair) => {
+          const isSelected = selectedPair.symbol === pair.symbol;
+          return (
+            <button
+              key={pair.symbol}
+              type="button"
+              onClick={() => {
+                haptic.selection();
+                setSelectedPair(pair);
+              }}
+              className={`px-3 py-2 border font-bold uppercase transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                isSelected
+                  ? 'bg-white text-black border-white shadow-sm'
+                  : 'bg-black text-neutral-400 border-white/20 hover:border-white hover:text-white'
               }`}
             >
-              {pair.change24h >= 0 ? `+${pair.change24h}%` : `${pair.change24h}%`}
-            </span>
-          </button>
-        ))}
+              <span className="font-mono">{pair.symbol}</span>
+              <span
+                className={`text-[9px] font-mono ${
+                  isSelected
+                    ? 'text-neutral-700'
+                    : pair.change24h >= 0
+                    ? 'text-[#00C076]'
+                    : 'text-[#FF3B30]'
+                }`}
+              >
+                {pair.change24h >= 0 ? `+${pair.change24h}%` : `${pair.change24h}%`}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Market Bar Details */}
-      <div className="p-3 bg-black border border-white/20 flex items-center justify-between font-mono text-[11px]">
+      {/* Market Bar Details & Timeframes */}
+      <div className="p-3 bg-black border border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2 font-mono text-[11px]">
         <div>
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-black text-white tracking-tight">
+            <span className="text-lg font-black text-white tracking-tight">
               ${currentPrice.toLocaleString(undefined, { minimumFractionDigits: selectedPair.decimals })}
             </span>
             <span
-              className={`text-[10px] font-bold ${
+              className={`text-xs font-bold ${
                 selectedPair.change24h >= 0 ? 'text-[#00C076]' : 'text-[#FF3B30]'
               }`}
             >
               {selectedPair.change24h >= 0 ? `+${selectedPair.change24h}%` : `${selectedPair.change24h}%`}
             </span>
           </div>
-          <span className="text-[9px] text-neutral-500 block">ПОСЛЕДНЯЯ ЦЕНА В СТАКАНЕ</span>
+          <span className="text-[9px] text-neutral-500 block">
+            {selectedPair.name} • 24h Vol: {selectedPair.vol24h}
+          </span>
         </div>
 
-        {/* Timeframe selector */}
-        <div className="flex items-center gap-1">
-          {['1m', '5m', '15m', '1H', '4H', '1D'].map((tf) => (
-            <button
-              key={tf}
-              onClick={() => {
-                haptic.selection();
-                setTimeframe(tf);
-              }}
-              className={`px-1.5 py-0.5 text-[9px] border font-bold ${
-                timeframe === tf
-                  ? 'bg-white text-black border-white'
-                  : 'bg-neutral-950 text-neutral-400 border-white/15 hover:text-white'
-              }`}
-            >
-              {tf}
-            </button>
-          ))}
+        {/* Timeframe selector (1m, 5m, 15m, 1H, 4H, 1D) */}
+        <div className="flex items-center gap-1 bg-neutral-950 p-1 border border-white/15">
+          {['1m', '5m', '15m', '1H', '4H', '1D'].map((tf) => {
+            const isTfActive = timeframe === tf;
+            return (
+              <button
+                key={tf}
+                type="button"
+                onClick={() => {
+                  haptic.selection();
+                  setTimeframe(tf);
+                }}
+                className={`px-2 py-1 text-[10px] font-bold border transition-all cursor-pointer ${
+                  isTfActive
+                    ? 'bg-white text-black border-white'
+                    : 'bg-black text-neutral-400 border-transparent hover:text-white'
+                }`}
+              >
+                {tf}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Trading Chart (Real green & red candlesticks) */}
+      {/* Trading Chart (Real green & red candlesticks with responsive container) */}
       <div className="p-1 bg-black border border-white/25 flex flex-col">
         <div ref={chartContainerRef} className="h-[280px] w-full" />
       </div>
 
-      {/* Orderbook & Depth mini preview toggle */}
+      {/* Orderbook & Depth mini preview */}
       <div className="grid grid-cols-2 gap-2 font-mono text-[10px]">
         {/* Asks (Sellers) */}
         <div className="p-2 border border-white/15 bg-black flex flex-col gap-1">
-          <span className="text-[9px] text-neutral-400 uppercase border-b border-white/10 pb-1">
-            АСКИ (ПРОДАВЦЫ)
+          <span className="text-[9px] text-neutral-400 uppercase border-b border-white/10 pb-1 flex justify-between">
+            <span>АСКИ (ПРОДАВЦЫ)</span>
+            <span>ОБЪЕМ</span>
           </span>
           {orderbookAsks.map((a, i) => (
             <div key={i} className="flex justify-between text-[#FF3B30]">
@@ -476,8 +547,9 @@ export const SimulatorView: React.FC = () => {
 
         {/* Bids (Buyers) */}
         <div className="p-2 border border-white/15 bg-black flex flex-col gap-1">
-          <span className="text-[9px] text-neutral-400 uppercase border-b border-white/10 pb-1">
-            БИДЫ (ПОКУПАТЕЛИ)
+          <span className="text-[9px] text-neutral-400 uppercase border-b border-white/10 pb-1 flex justify-between">
+            <span>БИДЫ (ПОКУПАТЕЛИ)</span>
+            <span>ОБЪЕМ</span>
           </span>
           {orderbookBids.map((b, i) => (
             <div key={i} className="flex justify-between text-[#00C076]">
@@ -488,8 +560,11 @@ export const SimulatorView: React.FC = () => {
         </div>
       </div>
 
-      {/* Order Execution Console */}
-      <div className="p-3.5 bg-black border border-white/25 flex flex-col gap-3 font-mono">
+      {/* Order Execution Console (Optimized for Mobile Keyboards) */}
+      <div
+        ref={orderSectionRef}
+        className="p-3.5 bg-black border border-white/25 flex flex-col gap-3 font-mono scroll-mt-6"
+      >
         <div className="flex items-center justify-between border-b border-white/15 pb-2 text-[11px]">
           <span className="font-bold text-white uppercase tracking-wider">
             ОРДЕР: {selectedPair.symbol}
@@ -499,7 +574,7 @@ export const SimulatorView: React.FC = () => {
           </span>
         </div>
 
-        {/* Leverage Pills */}
+        {/* Leverage Selector */}
         <div className="flex flex-col gap-1">
           <div className="flex justify-between text-[10px] text-neutral-400">
             <span>КРЕДИТНОЕ ПЛЕЧО</span>
@@ -509,11 +584,12 @@ export const SimulatorView: React.FC = () => {
             {[1, 2, 5, 10, 20, 50].map((lev) => (
               <button
                 key={lev}
+                type="button"
                 onClick={() => {
                   haptic.selection();
                   setLeverage(lev);
                 }}
-                className={`py-1 text-[10px] font-bold border transition-all cursor-pointer ${
+                className={`py-1.5 text-[10px] font-bold border transition-all cursor-pointer ${
                   leverage === lev
                     ? 'bg-white text-black border-white'
                     : 'bg-neutral-950 text-neutral-400 border-white/15 hover:border-white hover:text-white'
@@ -525,33 +601,100 @@ export const SimulatorView: React.FC = () => {
           </div>
         </div>
 
-        {/* Amount Input */}
-        <div className="flex flex-col gap-1">
+        {/* Amount Input with Steppers & Quick Buttons */}
+        <div className="flex flex-col gap-1.5">
           <div className="flex justify-between text-[10px] text-neutral-400">
-            <span>СУММА ОРДЕРА (USD)</span>
-            <span>МАРЖА: ${marginRequired}</span>
-          </div>
-          <div className="relative">
-            <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
-            <input
-              type="number"
-              value={orderAmount}
-              onChange={(e) => setOrderAmount(e.target.value)}
-              className="w-full pl-7 pr-3 py-2 bg-neutral-950 border border-white/25 text-white font-mono text-xs focus:outline-none focus:border-white font-bold"
-              placeholder="500"
-            />
+            <span>ОБЪЕМ ОРДЕРА (USD)</span>
+            <span className="text-white font-bold">ТРЕБУЕТСЯ МАРЖИ: ${marginRequired}</span>
           </div>
 
-          {/* Quick presets */}
-          <div className="grid grid-cols-5 gap-1 mt-1">
+          {/* Dismiss Keyboard Toolbar if active */}
+          {isInputFocused && (
+            <div className="flex justify-end pb-1">
+              <button
+                type="button"
+                onClick={() => {
+                  if (document.activeElement instanceof HTMLElement) {
+                    document.activeElement.blur();
+                  }
+                  setIsInputFocused(false);
+                }}
+                className="px-2 py-0.5 bg-neutral-800 text-white border border-white/30 text-[10px] font-mono cursor-pointer"
+              >
+                [ СКРЫТЬ КЛАВИАТУРУ ✕ ]
+              </button>
+            </div>
+          )}
+
+          {/* Input field + Stepper buttons */}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => handleAdjustAmount(-100)}
+              className="px-2.5 py-2.5 bg-neutral-950 border border-white/20 text-white hover:border-white active:bg-neutral-900 cursor-pointer"
+              title="-100"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="relative flex-1">
+              <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
+              <input
+                type="number"
+                inputMode="decimal"
+                value={orderAmount}
+                onFocus={(e) => {
+                  setIsInputFocused(true);
+                  setTimeout(() => {
+                    e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 300);
+                }}
+                onBlur={() => setIsInputFocused(false)}
+                onChange={(e) => setOrderAmount(e.target.value)}
+                className="w-full pl-7 pr-3 py-2 bg-neutral-950 border border-white/25 text-white font-mono text-xs focus:outline-none focus:border-white font-bold"
+                placeholder="500"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleAdjustAmount(100)}
+              className="px-2.5 py-2.5 bg-neutral-950 border border-white/20 text-white hover:border-white active:bg-neutral-900 cursor-pointer"
+              title="+100"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Quick Amount Percentage Chips (No keyboard needed!) */}
+          <div className="grid grid-cols-5 gap-1 mt-0.5">
+            {[10, 25, 50, 75, 100].map((pct) => (
+              <button
+                key={pct}
+                type="button"
+                onClick={() => handlePercentPreset(pct)}
+                className="py-1 text-[10px] border border-white/15 bg-neutral-950 text-neutral-300 hover:text-white hover:border-white transition-all cursor-pointer font-bold"
+              >
+                {pct}%
+              </button>
+            ))}
+          </div>
+
+          {/* USD Quick Amount presets */}
+          <div className="grid grid-cols-5 gap-1">
             {['100', '250', '500', '1000', '2500'].map((amt) => (
               <button
                 key={amt}
+                type="button"
                 onClick={() => {
                   haptic.selection();
                   setOrderAmount(amt);
                 }}
-                className="py-0.5 text-[9px] border border-white/15 bg-neutral-950 text-neutral-400 hover:text-white hover:border-white"
+                className={`py-0.5 text-[9px] border transition-all cursor-pointer ${
+                  orderAmount === amt
+                    ? 'border-white text-white bg-neutral-800'
+                    : 'border-white/15 bg-neutral-950 text-neutral-400 hover:text-white hover:border-white'
+                }`}
               >
                 ${amt}
               </button>
@@ -574,21 +717,23 @@ export const SimulatorView: React.FC = () => {
         {/* EXECUTE BUTTONS: LONG / SHORT */}
         <div className="grid grid-cols-2 gap-2 pt-1">
           <button
+            type="button"
             onClick={() => handleOpenPosition('LONG')}
-            className="py-3 bg-white text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border border-white hover:bg-neutral-200 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+            className="py-3.5 bg-white text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border border-white hover:bg-neutral-200 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
           >
-            <div className="w-2 h-2 bg-[#00C076]" />
+            <div className="w-2.5 h-2.5 bg-[#00C076]" />
             <span>LONG / КУПИТЬ</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
+            <ArrowUpRight className="w-4 h-4 text-black" />
           </button>
 
           <button
+            type="button"
             onClick={() => handleOpenPosition('SHORT')}
-            className="py-3 bg-neutral-900 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border border-white/40 hover:border-white active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+            className="py-3.5 bg-neutral-900 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 border border-white/40 hover:border-white active:scale-[0.98] transition-all cursor-pointer shadow-sm"
           >
-            <div className="w-2 h-2 bg-[#FF3B30]" />
+            <div className="w-2.5 h-2.5 bg-[#FF3B30]" />
             <span>SHORT / ПРОДАТЬ</span>
-            <ArrowDownRight className="w-3.5 h-3.5" />
+            <ArrowDownRight className="w-4 h-4 text-white" />
           </button>
         </div>
       </div>
@@ -597,6 +742,7 @@ export const SimulatorView: React.FC = () => {
       <div className="flex flex-col gap-2 font-mono">
         <div className="flex border-b border-white/20">
           <button
+            type="button"
             onClick={() => {
               haptic.selection();
               setActiveTab('positions');
@@ -611,6 +757,7 @@ export const SimulatorView: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => {
               haptic.selection();
               setActiveTab('history');
@@ -646,10 +793,10 @@ export const SimulatorView: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <span className="font-black text-xs text-white">{pos.symbol}</span>
                       <span
-                        className={`text-[9px] font-black px-1 py-0.5 border ${
+                        className={`text-[9px] font-black px-1.5 py-0.5 border ${
                           pos.direction === 'LONG'
-                            ? 'border-[#00C076] text-[#00C076]'
-                            : 'border-[#FF3B30] text-[#FF3B30]'
+                            ? 'border-[#00C076] text-[#00C076] bg-[#00C076]/10'
+                            : 'border-[#FF3B30] text-[#FF3B30] bg-[#FF3B30]/10'
                         }`}
                       >
                         {pos.direction} {pos.leverage}x
@@ -684,8 +831,9 @@ export const SimulatorView: React.FC = () => {
                   </div>
 
                   <button
+                    type="button"
                     onClick={() => handleClosePosition(pos)}
-                    className="w-full py-1.5 bg-neutral-900 hover:bg-white hover:text-black border border-white/30 font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer mt-1"
+                    className="w-full py-2 bg-neutral-900 hover:bg-white hover:text-black border border-white/30 font-bold text-[10px] uppercase tracking-wider transition-all cursor-pointer mt-1"
                   >
                     ЗАКРЫТЬ ПОЗИЦИЮ ПО РЫНКУ
                   </button>
