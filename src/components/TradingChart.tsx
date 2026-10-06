@@ -66,12 +66,12 @@ export const TradingChart: React.FC<TradingChartProps> = ({
     });
 
     const series = chart.addSeries(CandlestickSeries, {
-      upColor: '#FFFFFF',
-      downColor: '#000000',
-      borderUpColor: '#FFFFFF',
-      borderDownColor: '#FFFFFF',
-      wickUpColor: '#FFFFFF',
-      wickDownColor: '#FFFFFF',
+      upColor: '#00C076',
+      downColor: '#FF3B30',
+      borderUpColor: '#00C076',
+      borderDownColor: '#FF3B30',
+      wickUpColor: '#00C076',
+      wickDownColor: '#FF3B30',
     });
 
     const formattedData = candles.map((c) => ({
