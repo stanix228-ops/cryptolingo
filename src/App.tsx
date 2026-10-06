@@ -6,16 +6,18 @@ import { SimulatorView } from './components/SimulatorView';
 import { GlossaryView } from './components/GlossaryView';
 import { ProfileView } from './components/ProfileView';
 import { GlossaryPromoModal } from './components/GlossaryPromoModal';
+import { LivesShopModal } from './components/LivesShopModal';
 import { BottomNav, type TabType } from './components/BottomNav';
 import { SplashReveal } from './components/SplashReveal';
 import { COURSE_MODULES } from './data/courses';
+import { ACHIEVEMENTS } from './data/achievements';
 import type { Lesson, UserProgress } from './types';
 import { initTelegramApp, getTelegramWebApp, getTelegramUser, haptic } from './services/telegram';
 
 const STORAGE_KEY = 'cryptolingo_user_progress';
 
 const DEFAULT_PROGRESS: UserProgress = {
-  xp: 0,
+  xp: 100, // Welcome bonus XP for every new trader
   coins: 100,
   streakDays: 1,
   lastActiveDate: new Date().toISOString().slice(0, 10),
@@ -27,6 +29,14 @@ const DEFAULT_PROGRESS: UserProgress = {
   equippedTitle: 'Junior Trader',
   referralCount: 0,
   isGlossaryUnlocked: false,
+  unlockedAchievements: [],
+  claimedAchievements: [],
+  tradingStats: {
+    totalTrades: 0,
+    winningTrades: 0,
+    maxLeverageUsed: 1,
+    totalPnlUsd: 0,
+  },
 };
 
 export const App: React.FC = () => {
@@ -35,7 +45,16 @@ export const App: React.FC = () => {
   const [progress, setProgress] = useState<UserProgress>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : DEFAULT_PROGRESS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          ...DEFAULT_PROGRESS,
+          ...parsed,
+          claimedAchievements: parsed.claimedAchievements || [],
+          tradingStats: parsed.tradingStats || DEFAULT_PROGRESS.tradingStats,
+        };
+      }
+      return DEFAULT_PROGRESS;
     } catch {
       return DEFAULT_PROGRESS;
     }
@@ -44,6 +63,7 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('lessons');
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [showGlossaryPromo, setShowGlossaryPromo] = useState<boolean>(false);
+  const [showLivesShop, setShowLivesShop] = useState<boolean>(false);
 
   useEffect(() => {
     initTelegramApp();
@@ -59,6 +79,7 @@ export const App: React.FC = () => {
     if (isUnlockedParam) {
       setProgress((prev) => ({
         ...prev,
+        xp: prev.xp + 100, // +100 XP referral bonus
         referralCount: Math.max(1, (prev.referralCount || 0) + 1),
         isGlossaryUnlocked: true,
       }));
@@ -86,6 +107,7 @@ export const App: React.FC = () => {
       } else if (startParam === 'unlocked' || startParam === 'glossary') {
         setProgress((prev) => ({
           ...prev,
+          xp: prev.xp + 100,
           referralCount: Math.max(1, (prev.referralCount || 0) + 1),
           isGlossaryUnlocked: true,
         }));
@@ -110,6 +132,35 @@ export const App: React.FC = () => {
           // Offline fallback
         });
     }
+
+    // 4. Daily streak & check active date
+    const todayStr = new Date().toISOString().slice(0, 10);
+    setProgress((prev) => {
+      if (prev.lastActiveDate === todayStr) return prev;
+
+      const lastDate = new Date(prev.lastActiveDate);
+      const todayDate = new Date(todayStr);
+      const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 3600 * 24));
+
+      if (diffDays === 1) {
+        // Consecutive streak day!
+        return {
+          ...prev,
+          streakDays: (prev.streakDays || 1) + 1,
+          lastActiveDate: todayStr,
+          xp: prev.xp + 25, // Daily streak bonus XP!
+        };
+      } else if (diffDays > 1) {
+        // Reset streak
+        return {
+          ...prev,
+          streakDays: 1,
+          lastActiveDate: todayStr,
+          xp: prev.xp + 10,
+        };
+      }
+      return prev;
+    });
   }, []);
 
   useEffect(() => {
@@ -124,10 +175,11 @@ export const App: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
-        if (prev.lives < prev.maxLives) {
+        const max = prev.maxLives || 5;
+        if (prev.lives < max) {
           return {
             ...prev,
-            lives: Math.min(prev.maxLives, prev.lives + 1),
+            lives: Math.min(max, prev.lives + 1),
           };
         }
         return prev;
@@ -186,13 +238,105 @@ export const App: React.FC = () => {
   const handleRefillLives = () => {
     setProgress((prev) => ({
       ...prev,
-      lives: prev.maxLives,
+      lives: prev.maxLives || 5,
     }));
+  };
+
+  // Buy Lives with XP
+  const handleBuyLives = (amount: number, xpCost: number) => {
+    setProgress((prev) => {
+      if (prev.xp < xpCost) return prev;
+      const max = prev.maxLives || 5;
+      return {
+        ...prev,
+        xp: prev.xp - xpCost,
+        lives: Math.min(max, prev.lives + amount),
+      };
+    });
+  };
+
+  // Upgrade Max Lives with XP
+  const handleUpgradeMaxLives = (extraLives: number, xpCost: number) => {
+    setProgress((prev) => {
+      if (prev.xp < xpCost) return prev;
+      const newMax = (prev.maxLives || 5) + extraLives;
+      return {
+        ...prev,
+        xp: prev.xp - xpCost,
+        maxLives: newMax,
+        lives: newMax,
+      };
+    });
+  };
+
+  // Claim Individual Achievement XP
+  const handleClaimAchievement = (achId: string, rewardXp: number) => {
+    setProgress((prev) => {
+      const claimed = prev.claimedAchievements || [];
+      if (claimed.includes(achId)) return prev;
+      haptic.success();
+      return {
+        ...prev,
+        xp: prev.xp + rewardXp,
+        claimedAchievements: [...claimed, achId],
+      };
+    });
+  };
+
+  // Claim All Unclaimed Achievements XP
+  const handleClaimAllAchievements = () => {
+    setProgress((prev) => {
+      const claimed = prev.claimedAchievements || [];
+      const unclaimed = ACHIEVEMENTS.filter(
+        (ach) => ach.checkUnlocked(prev) && !claimed.includes(ach.id)
+      );
+
+      if (unclaimed.length === 0) return prev;
+
+      const totalXp = unclaimed.reduce((sum, ach) => sum + ach.rewardXp, 0);
+      const newClaimedIds = unclaimed.map((ach) => ach.id);
+
+      haptic.success();
+      return {
+        ...prev,
+        xp: prev.xp + totalXp,
+        claimedAchievements: [...claimed, ...newClaimedIds],
+      };
+    });
+  };
+
+  // Terminal Trade complete callback
+  const handleTradeComplete = (stats: { isWin: boolean; pnlUsd: number; leverage: number }) => {
+    setProgress((prev) => {
+      const prevStats = prev.tradingStats || {
+        totalTrades: 0,
+        winningTrades: 0,
+        maxLeverageUsed: 1,
+        totalPnlUsd: 0,
+      };
+
+      const newStats = {
+        totalTrades: prevStats.totalTrades + 1,
+        winningTrades: prevStats.winningTrades + (stats.isWin ? 1 : 0),
+        maxLeverageUsed: Math.max(prevStats.maxLeverageUsed, stats.leverage),
+        totalPnlUsd: Number((prevStats.totalPnlUsd + stats.pnlUsd).toFixed(2)),
+      };
+
+      // Award XP for trade activity: +10 XP for profitable trade, +2 XP for trade execution
+      const earnedXp = stats.isWin ? 10 : 2;
+
+      return {
+        ...prev,
+        xp: prev.xp + earnedXp,
+        tradingStats: newStats,
+      };
+    });
   };
 
   const handleUnlockGlossary = () => {
     setProgress((prev) => ({
       ...prev,
+      xp: prev.xp + 100,
       referralCount: Math.max(1, (prev.referralCount || 0) + 1),
       isGlossaryUnlocked: true,
     }));
@@ -210,6 +354,7 @@ export const App: React.FC = () => {
         progress={progress}
         onOpenProfile={() => setActiveTab('profile')}
         onOpenSimulator={() => setActiveTab('simulator')}
+        onOpenLivesShop={() => setShowLivesShop(true)}
         activeTab={activeTab}
       />
 
@@ -224,13 +369,15 @@ export const App: React.FC = () => {
                 setActiveLesson(lesson);
               } else {
                 haptic.error();
-                alert('Лимит попыток исчерпан. Ожидайте автоматического восстановления либо пригласите партнера.');
+                setShowLivesShop(true);
               }
             }}
           />
         )}
 
-        {activeTab === 'simulator' && <SimulatorView />}
+        {activeTab === 'simulator' && (
+          <SimulatorView onTradeComplete={handleTradeComplete} />
+        )}
 
         {activeTab === 'glossary' && (
           <GlossaryView
@@ -243,6 +390,9 @@ export const App: React.FC = () => {
           <ProfileView
             progress={progress}
             onRefillLives={handleRefillLives}
+            onOpenLivesShop={() => setShowLivesShop(true)}
+            onClaimAchievement={handleClaimAchievement}
+            onClaimAllAchievements={handleClaimAllAchievements}
           />
         )}
       </main>
@@ -251,9 +401,12 @@ export const App: React.FC = () => {
       {activeLesson && (
         <LessonModal
           lesson={activeLesson}
+          lives={progress.lives}
+          userXp={progress.xp}
           onClose={() => setActiveLesson(null)}
           onComplete={handleCompleteLesson}
           onLifeLost={handleLifeLost}
+          onBuyLives={handleBuyLives}
         />
       )}
 
@@ -265,6 +418,16 @@ export const App: React.FC = () => {
             setShowGlossaryPromo(false);
             setActiveTab('glossary');
           }}
+        />
+      )}
+
+      {/* Energy & Lives Shop Modal */}
+      {showLivesShop && (
+        <LivesShopModal
+          progress={progress}
+          onClose={() => setShowLivesShop(false)}
+          onBuyLives={handleBuyLives}
+          onUpgradeMaxLives={handleUpgradeMaxLives}
         />
       )}
 

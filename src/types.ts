@@ -86,6 +86,7 @@ export interface UserProgress {
   referralCount?: number;
   isGlossaryUnlocked?: boolean;
   unlockedAchievements?: string[];
+  claimedAchievements?: string[];
   tradingStats?: {
     totalTrades: number;
     winningTrades: number;

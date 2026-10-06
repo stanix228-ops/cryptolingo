@@ -7,12 +7,14 @@ interface HeaderProps {
   progress: UserProgress;
   onOpenProfile: () => void;
   onOpenSimulator: () => void;
+  onOpenLivesShop: () => void;
   activeTab: 'lessons' | 'simulator' | 'glossary' | 'profile';
 }
 
 export const Header: React.FC<HeaderProps> = ({
   progress,
   onOpenProfile,
+  onOpenLivesShop,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-black border-b border-white/15 px-3 py-2.5 select-none transition-all">
@@ -40,11 +42,18 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Stats Badges */}
         <div className="flex items-center gap-1.5 font-mono text-[11px]">
-          {/* Lives */}
-          <div className="flex items-center gap-1 px-2 py-0.5 border border-white/20 bg-neutral-950 text-white font-bold">
+          {/* Lives (Clickable Shop Trigger) */}
+          <button
+            onClick={() => {
+              haptic.medium();
+              onOpenLivesShop();
+            }}
+            className="flex items-center gap-1 px-2 py-0.5 border border-white/20 bg-neutral-950 text-white font-bold hover:border-white hover:bg-neutral-900 transition-all cursor-pointer"
+            title="Пополнить жизни за XP"
+          >
             <Heart className="w-3 h-3 text-white fill-white" />
             <span>{progress.lives}</span>
-          </div>
+          </button>
 
           {/* Streak */}
           <div className="flex items-center gap-1 px-2 py-0.5 border border-white/20 bg-neutral-950 text-white font-bold">
@@ -53,10 +62,16 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* XP */}
-          <div className="flex items-center gap-1 px-2 py-0.5 border border-white bg-white text-black font-black">
+          <button
+            onClick={() => {
+              haptic.selection();
+              onOpenProfile();
+            }}
+            className="flex items-center gap-1 px-2 py-0.5 border border-white bg-white text-black font-black hover:bg-neutral-200 transition-all cursor-pointer"
+          >
             <Zap className="w-3 h-3 text-black fill-black" />
             <span>{progress.xp} XP</span>
-          </div>
+          </button>
         </div>
       </div>
     </header>

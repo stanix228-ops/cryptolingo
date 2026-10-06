@@ -1,16 +1,25 @@
 import React, { useState } from 'react';
 import type { UserProgress } from '../types';
-import { Share2, Zap, Flame, Check, Copy, Trophy, Award, Lock, ExternalLink } from 'lucide-react';
+import { Share2, Zap, Flame, Check, Copy, Trophy, Award, Lock, ExternalLink, Heart, Plus, Sparkles } from 'lucide-react';
 import { getTelegramUser, haptic, openTelegramLink, shareToTelegram, copyText } from '../services/telegram';
 import { ACHIEVEMENTS, type Achievement } from '../data/achievements';
 import { AchievementBadge } from './AchievementBadge';
+import confetti from 'canvas-confetti';
 
 interface ProfileViewProps {
   progress: UserProgress;
   onRefillLives: () => void;
+  onOpenLivesShop: () => void;
+  onClaimAchievement: (achId: string, rewardXp: number) => void;
+  onClaimAllAchievements: () => void;
 }
 
-export const ProfileView: React.FC<ProfileViewProps> = ({ progress }) => {
+export const ProfileView: React.FC<ProfileViewProps> = ({
+  progress,
+  onOpenLivesShop,
+  onClaimAchievement,
+  onClaimAllAchievements,
+}) => {
   const user = getTelegramUser();
   const [copied, setCopied] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -42,10 +51,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ progress }) => {
     shareToTelegram(referralLink, text);
   };
 
+  const claimedList = progress.claimedAchievements || [];
+
   // Calculate achievements stats
-  const unlockedCount = ACHIEVEMENTS.filter((ach) => ach.checkUnlocked(progress)).length;
+  const unlockedAchievements = ACHIEVEMENTS.filter((ach) => ach.checkUnlocked(progress));
+  const unlockedCount = unlockedAchievements.length;
   const totalCount = ACHIEVEMENTS.length;
   const achPercent = Math.round((unlockedCount / totalCount) * 100);
+
+  // Unclaimed achievements & XP calculation
+  const unclaimedAchievements = unlockedAchievements.filter((ach) => !claimedList.includes(ach.id));
+  const totalUnclaimedXp = unclaimedAchievements.reduce((sum, ach) => sum + ach.rewardXp, 0);
 
   const totalBlocks = 20;
   const filledBlocks = Math.round((achPercent / 100) * totalBlocks);
@@ -64,6 +80,18 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ progress }) => {
     { id: 'social', label: 'ДИСЦИПЛИНА' },
     { id: 'mastery', label: 'МАСТЕРСТВО' },
   ];
+
+  const triggerClaimConfetti = () => {
+    confetti({
+      particleCount: 40,
+      spread: 60,
+      origin: { y: 0.7 },
+      colors: ['#FFFFFF', '#AAAAAA', '#DDDDDD'],
+    });
+  };
+
+  const currentLives = progress.lives;
+  const maxLives = progress.maxLives || 5;
 
   return (
     <div className="flex flex-col max-w-md mx-auto px-3 py-4 pb-28 gap-4 select-none font-mono text-white">
@@ -100,6 +128,32 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ progress }) => {
             />
           </div>
         </div>
+      </div>
+
+      {/* Lives / Energy Card with XP Shop Trigger */}
+      <div className="p-3.5 bg-black border border-white/25 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-neutral-950 border border-white/20 flex items-center justify-center text-white">
+            <Heart className="w-4 h-4 fill-white text-white" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[9px] text-neutral-400 uppercase font-bold">ЗАПАС ЖИЗНЕЙ ДЛЯ ТЕСТОВ</span>
+            <span className="text-xs font-black text-white">
+              {currentLives} / {maxLives} ЖИЗНЕЙ
+            </span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            haptic.medium();
+            onOpenLivesShop();
+          }}
+          className="px-3 py-2 bg-white text-black font-black text-[10px] uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer flex items-center gap-1"
+        >
+          <Plus className="w-3 h-3 text-black stroke-[3]" />
+          <span>КУПИТЬ ЗА XP</span>
+        </button>
       </div>
 
       {/* 4 Stats Grid */}
@@ -152,7 +206,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ progress }) => {
       {/* ACHIEVEMENTS SECTION (20 Graphic Specifications) */}
       <div className="flex flex-col gap-3 pt-2">
         {/* Achievements Header */}
-        <div className="p-3.5 bg-black border border-white/25 flex flex-col gap-2">
+        <div className="p-3.5 bg-black border border-white/25 flex flex-col gap-2.5">
           <div className="flex items-center justify-between border-b border-white/15 pb-2">
             <div className="flex items-center gap-2">
               <Trophy className="w-3.5 h-3.5 text-white" />
@@ -166,13 +220,27 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ progress }) => {
           </div>
 
           <div className="flex justify-between items-center text-[10px] text-neutral-400">
-            <span>ПРОГРЕСС ДОСТИЖЕНИЙ</span>
+            <span>ПРОГРЕСС ВЫПОЛНЕНИЯ</span>
             <span className="text-white font-bold">{achPercent}%</span>
           </div>
 
           <div className="font-mono text-xs tracking-tighter text-white select-none">
             [ {progressBlocks} ]
           </div>
+
+          {/* Claim All Unclaimed XP Button if any */}
+          {unclaimedAchievements.length > 0 && (
+            <button
+              onClick={() => {
+                triggerClaimConfetti();
+                onClaimAllAchievements();
+              }}
+              className="mt-1 w-full py-2.5 bg-white text-black font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer hover:bg-neutral-200 transition-all border border-white animate-pulse"
+            >
+              <Zap className="w-3.5 h-3.5 fill-black text-black" />
+              <span>[ ЗАБРАТЬ ВСЕ НАГРАДЫ (+{totalUnclaimedXp} XP) ]</span>
+            </button>
+          )}
         </div>
 
         {/* Category Filters */}
@@ -199,6 +267,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ progress }) => {
         <div className="flex flex-col gap-2.5">
           {filteredAchievements.map((ach) => {
             const isUnlocked = ach.checkUnlocked(progress);
+            const isClaimed = claimedList.includes(ach.id);
             const p = ach.getProgress(progress);
             const progressRatio = Math.min(100, Math.round((p.current / (p.max || 1)) * 100));
 
@@ -211,7 +280,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ progress }) => {
                 }}
                 className={`p-3 border transition-all flex items-start gap-3 cursor-pointer ${
                   isUnlocked
-                    ? 'bg-black border-white/40 hover:border-white shadow-sm'
+                    ? isClaimed
+                      ? 'bg-black border-white/30 hover:border-white'
+                      : 'bg-neutral-950 border-white shadow-sm ring-1 ring-white/30'
                     : 'bg-neutral-950 border-white/10 hover:border-white/25 opacity-75'
                 }`}
               >
@@ -239,14 +310,28 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ progress }) => {
                     {ach.description}
                   </p>
 
-                  {/* Progress bar inside card */}
-                  <div className="flex items-center justify-between gap-2 mt-1 pt-1 border-t border-white/10 text-[9px] font-mono">
+                  {/* Progress bar / Claim Button inside card */}
+                  <div className="flex items-center justify-between gap-2 mt-1 pt-1.5 border-t border-white/10 text-[9px] font-mono">
                     <span className="text-neutral-500">СТАТУС: {p.label}</span>
                     {isUnlocked ? (
-                      <span className="text-black bg-white px-1 font-bold flex items-center gap-0.5">
-                        <Check className="w-2.5 h-2.5 text-black stroke-[3]" />
-                        ВЫПОЛНЕНО
-                      </span>
+                      isClaimed ? (
+                        <span className="text-neutral-400 bg-neutral-900 border border-white/15 px-1.5 py-0.5 font-bold flex items-center gap-0.5">
+                          <Check className="w-2.5 h-2.5 text-white stroke-[3]" />
+                          ПОЛУЧЕНО
+                        </span>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            triggerClaimConfetti();
+                            onClaimAchievement(ach.id, ach.rewardXp);
+                          }}
+                          className="bg-white text-black px-2 py-0.5 font-black uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer flex items-center gap-1"
+                        >
+                          <Zap className="w-2.5 h-2.5 fill-black text-black" />
+                          ЗАБРАТЬ +{ach.rewardXp} XP
+                        </button>
+                      )
                     ) : (
                       <span className="text-neutral-400 font-bold">{progressRatio}%</span>
                     )}
@@ -329,12 +414,26 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ progress }) => {
               </span>
             </div>
 
-            <button
-              onClick={() => setSelectedAchievement(null)}
-              className="w-full py-2.5 bg-white text-black font-black text-xs uppercase tracking-wider border border-white cursor-pointer hover:bg-neutral-200"
-            >
-              [ ЗАКРЫТЬ ]
-            </button>
+            {selectedAchievement.checkUnlocked(progress) && !claimedList.includes(selectedAchievement.id) ? (
+              <button
+                onClick={() => {
+                  triggerClaimConfetti();
+                  onClaimAchievement(selectedAchievement.id, selectedAchievement.rewardXp);
+                  setSelectedAchievement(null);
+                }}
+                className="w-full py-3 bg-white text-black font-black text-xs uppercase tracking-wider border border-white cursor-pointer hover:bg-neutral-200 flex items-center justify-center gap-1.5"
+              >
+                <Zap className="w-3.5 h-3.5 fill-black text-black" />
+                <span>[ ЗАБРАТЬ НАГРАДУ +{selectedAchievement.rewardXp} XP ]</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setSelectedAchievement(null)}
+                className="w-full py-2.5 bg-neutral-950 border border-white/20 text-neutral-400 font-black text-xs uppercase tracking-wider cursor-pointer hover:text-white hover:border-white"
+              >
+                [ ЗАКРЫТЬ ]
+              </button>
+            )}
           </div>
         </div>
       )}

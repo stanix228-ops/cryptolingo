@@ -159,7 +159,11 @@ const generateInitialCandles = (basePrice: number, tf: string, count = 45) => {
   return candles;
 };
 
-export const SimulatorView: React.FC = () => {
+interface SimulatorViewProps {
+  onTradeComplete?: (stats: { isWin: boolean; pnlUsd: number; leverage: number }) => void;
+}
+
+export const SimulatorView: React.FC<SimulatorViewProps> = ({ onTradeComplete }) => {
   const [selectedPair, setSelectedPair] = useState<MarketPair>(MARKET_PAIRS[0]);
   const [timeframe, setTimeframe] = useState<string>('15m');
   const [balance, setBalance] = useState<number>(10000);
@@ -372,6 +376,12 @@ export const SimulatorView: React.FC = () => {
     setBalance((prev) => Number((prev + totalReturn).toFixed(2)));
     setOpenPositions((prev) => prev.filter((p) => p.id !== pos.id));
     setClosedTrades((prev) => [closed, ...prev]);
+
+    onTradeComplete?.({
+      isWin: pnlUsd > 0,
+      pnlUsd: Number(pnlUsd.toFixed(2)),
+      leverage: pos.leverage,
+    });
   };
 
   const handleResetBalance = () => {

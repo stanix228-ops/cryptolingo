@@ -1,22 +1,28 @@
 import React, { useState } from 'react';
 import type { Lesson, StepType } from '../types';
 import { TradingChart } from './TradingChart';
-import { X, ArrowRight, CheckCircle2, AlertCircle, BookOpen, Brain, TrendingUp, Award, Zap, Shield } from 'lucide-react';
+import { X, ArrowRight, CheckCircle2, AlertCircle, BookOpen, Brain, TrendingUp, Award, Zap, Shield, Heart, Plus } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { haptic } from '../services/telegram';
 
 interface LessonModalProps {
   lesson: Lesson;
+  lives: number;
+  userXp: number;
   onClose: () => void;
   onComplete: (score: number, stars: number) => void;
   onLifeLost: () => void;
+  onBuyLives: (amount: number, xpCost: number) => void;
 }
 
 export const LessonModal: React.FC<LessonModalProps> = ({
   lesson,
+  lives,
+  userXp,
   onClose,
   onComplete,
   onLifeLost,
+  onBuyLives,
 }) => {
   const [currentStep, setCurrentStep] = useState<StepType>('theory');
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
@@ -24,6 +30,7 @@ export const LessonModal: React.FC<LessonModalProps> = ({
   const [isAnswerChecked, setIsAnswerChecked] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [showNoLivesModal, setShowNoLivesModal] = useState(false);
 
   const progressPercent =
     currentStep === 'theory'
@@ -57,6 +64,12 @@ export const LessonModal: React.FC<LessonModalProps> = ({
     } else {
       haptic.error();
       onLifeLost();
+      if (lives <= 1) {
+        // user will have 0 lives
+        setTimeout(() => {
+          setShowNoLivesModal(true);
+        }, 500);
+      }
     }
   };
 
@@ -79,8 +92,31 @@ export const LessonModal: React.FC<LessonModalProps> = ({
     setIsFinished(true);
   };
 
+  const handlePracticeError = () => {
+    onLifeLost();
+    if (lives <= 1) {
+      setTimeout(() => {
+        setShowNoLivesModal(true);
+      }, 500);
+    }
+  };
+
   const handleFinishLesson = () => {
     onComplete(100, 3);
+  };
+
+  const handleBuySingle = () => {
+    if (userXp >= 50) {
+      onBuyLives(1, 50);
+      setShowNoLivesModal(false);
+    }
+  };
+
+  const handleBuyFull = () => {
+    if (userXp >= 150) {
+      onBuyLives(5, 150);
+      setShowNoLivesModal(false);
+    }
   };
 
   return (
@@ -102,9 +138,16 @@ export const LessonModal: React.FC<LessonModalProps> = ({
           />
         </div>
 
-        {/* Step Indicator */}
-        <div className="flex items-center gap-1 font-mono text-[10px] text-white px-2 py-0.5 border border-white/20 bg-neutral-950 uppercase tracking-wider">
-          <span>{currentStep === 'theory' ? '[ THEORY ]' : currentStep === 'quiz' ? '[ TEST ]' : '[ TERMINAL ]'}</span>
+        {/* Lives Counter & Step Indicator */}
+        <div className="flex items-center gap-1.5 font-mono text-[10px]">
+          <div className="flex items-center gap-1 px-1.5 py-0.5 border border-white/20 bg-neutral-950 text-white font-bold">
+            <Heart className="w-2.5 h-2.5 fill-white text-white" />
+            <span>{lives}</span>
+          </div>
+
+          <div className="px-1.5 py-0.5 border border-white/20 bg-neutral-950 uppercase tracking-wider text-neutral-300">
+            <span>{currentStep === 'theory' ? '[ THEORY ]' : currentStep === 'quiz' ? '[ TEST ]' : '[ TERMINAL ]'}</span>
+          </div>
         </div>
       </div>
 
@@ -243,7 +286,7 @@ export const LessonModal: React.FC<LessonModalProps> = ({
                 tolerancePercent={lesson.practice.tolerancePercent}
                 expectedDirection={lesson.practice.expectedDirection}
                 onSuccess={handlePracticeSuccess}
-                onError={() => onLifeLost()}
+                onError={handlePracticeError}
               />
             </div>
           </div>
@@ -289,8 +332,64 @@ export const LessonModal: React.FC<LessonModalProps> = ({
         )}
       </div>
 
+      {/* Out of Lives Modal during Quiz / Practice */}
+      {showNoLivesModal && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm bg-black border border-white/30 p-5 flex flex-col items-center text-center gap-3.5 font-mono">
+            <div className="w-12 h-12 bg-neutral-950 border border-white/20 flex items-center justify-center text-white">
+              <Heart className="w-6 h-6 fill-white text-white" />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <h3 className="text-sm font-black uppercase text-white">ЛИМИТ ПОПЫТОК ИСЧЕРПАН</h3>
+              <p className="text-xs text-neutral-400 font-sans leading-relaxed">
+                Пополните запас жизней за накопленные очки XP, чтобы продолжить урок прямо сейчас:
+              </p>
+            </div>
+
+            <div className="w-full flex flex-col gap-2 pt-1">
+              <button
+                onClick={handleBuySingle}
+                disabled={userXp < 50}
+                className={`w-full py-2.5 font-black text-[11px] uppercase tracking-wider border flex items-center justify-between px-3 ${
+                  userXp >= 50
+                    ? 'bg-white text-black border-white hover:bg-neutral-200 cursor-pointer'
+                    : 'bg-neutral-950 text-neutral-600 border-white/10 cursor-not-allowed'
+                }`}
+              >
+                <span>+1 ЖИЗНЬ</span>
+                <span>[ 50 XP ]</span>
+              </button>
+
+              <button
+                onClick={handleBuyFull}
+                disabled={userXp < 150}
+                className={`w-full py-2.5 font-black text-[11px] uppercase tracking-wider border flex items-center justify-between px-3 ${
+                  userXp >= 150
+                    ? 'bg-white text-black border-white hover:bg-neutral-200 cursor-pointer'
+                    : 'bg-neutral-950 text-neutral-600 border-white/10 cursor-not-allowed'
+                }`}
+              >
+                <span>ПОЛНЫЙ РЕЗЕРВ (5/5)</span>
+                <span>[ 150 XP ]</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowNoLivesModal(false);
+                  onClose();
+                }}
+                className="w-full py-2 bg-neutral-950 border border-white/20 text-neutral-400 font-bold text-[10px] uppercase tracking-wider hover:text-white transition-colors cursor-pointer mt-1"
+              >
+                [ ВЫЙТИ ИЗ УРОКА ]
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Footer Button */}
-      {!isFinished && currentStep !== 'practice' && (
+      {!isFinished && currentStep !== 'practice' && !showNoLivesModal && (
         <div className="p-3 bg-black border-t border-white/15 max-w-md mx-auto w-full font-mono">
           {currentStep === 'theory' && (
             <button
