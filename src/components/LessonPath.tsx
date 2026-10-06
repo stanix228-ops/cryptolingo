@@ -1,6 +1,23 @@
 import React, { useState } from 'react';
 import type { Module, Lesson, UserProgress } from '../types';
-import { Lock, Check, ArrowRight, ChevronDown, ChevronUp, Play, BookOpen } from 'lucide-react';
+import {
+  Lock,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Play,
+  BookOpen,
+  Layers,
+  Sliders,
+  Flame,
+  TrendingUp,
+  Crosshair,
+  Triangle,
+  Activity,
+  ShieldCheck,
+  Brain,
+  Crown,
+} from 'lucide-react';
 import { haptic } from '../services/telegram';
 
 interface LessonPathProps {
@@ -8,6 +25,34 @@ interface LessonPathProps {
   progress: UserProgress;
   onSelectLesson: (lesson: Lesson) => void;
 }
+
+// Map each module to a dedicated thematic Lucide icon in Swiss Bauhaus style
+const getModuleIcon = (moduleNumber: number) => {
+  switch (moduleNumber) {
+    case 1:
+      return Layers; // 01: Цифровая валюта и блокчейн
+    case 2:
+      return Sliders; // 02: Устройство бирж и ордера
+    case 3:
+      return Flame; // 03: Чтение графиков и свечи
+    case 4:
+      return TrendingUp; // 04: Уровни и тренды
+    case 5:
+      return Crosshair; // 05: Price Action и структура
+    case 6:
+      return Triangle; // 06: Графические паттерны
+    case 7:
+      return Activity; // 07: Индикаторы и объемы
+    case 8:
+      return ShieldCheck; // 08: Риск-менеджмент
+    case 9:
+      return Brain; // 09: Психология и дисциплина
+    case 10:
+      return Crown; // 10: Web3 и экспертные стратегии
+    default:
+      return BookOpen;
+  }
+};
 
 export const LessonPath: React.FC<LessonPathProps> = ({
   modules,
@@ -107,27 +152,33 @@ export const LessonPath: React.FC<LessonPathProps> = ({
               : 'bg-black text-neutral-400 border-white/15 hover:border-white hover:text-white'
           }`}
         >
-          [ ВСЕ МОДУЛИ ]
+          [ ВСЕ ]
         </button>
 
-        {modules.map((mod) => (
-          <button
-            key={mod.id}
-            onClick={() => {
-              haptic.selection();
-              setSelectedFilter(mod.id);
-              // Auto-expand this module when filtered
-              setExpandedModules((prev) => ({ ...prev, [mod.id]: true }));
-            }}
-            className={`px-2.5 py-1.5 border font-bold uppercase whitespace-nowrap transition-all cursor-pointer ${
-              selectedFilter === mod.id
-                ? 'bg-white text-black border-white'
-                : 'bg-black text-neutral-400 border-white/15 hover:border-white hover:text-white'
-            }`}
-          >
-            [ 0{mod.number}. {mod.title.split(' ')[0]} ]
-          </button>
-        ))}
+        {modules.map((mod) => {
+          const PillIcon = getModuleIcon(mod.number);
+          const isSelected = selectedFilter === mod.id;
+
+          return (
+            <button
+              key={mod.id}
+              onClick={() => {
+                haptic.selection();
+                setSelectedFilter(mod.id);
+                // Auto-expand this module when filtered
+                setExpandedModules((prev) => ({ ...prev, [mod.id]: true }));
+              }}
+              className={`px-2 py-1.5 border font-bold uppercase whitespace-nowrap transition-all flex items-center gap-1 cursor-pointer ${
+                isSelected
+                  ? 'bg-white text-black border-white'
+                  : 'bg-black text-neutral-400 border-white/15 hover:border-white hover:text-white'
+              }`}
+            >
+              <PillIcon className="w-3 h-3 text-current shrink-0" />
+              <span>[ 0{mod.number}. {mod.title.split(' ')[0]} ]</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Expandable Modules Accordion List */}
@@ -141,6 +192,7 @@ export const LessonPath: React.FC<LessonPathProps> = ({
             ];
           const isExpanded = !!expandedModules[module.id];
           const modPercent = Math.round((modCompleted / module.lessons.length) * 100);
+          const ModuleIcon = getModuleIcon(module.number);
 
           return (
             <div
@@ -162,7 +214,21 @@ export const LessonPath: React.FC<LessonPathProps> = ({
                 }}
                 className="w-full p-3.5 flex items-center justify-between gap-3 text-left transition-colors hover:bg-neutral-950 cursor-pointer"
               >
-                <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                {/* Left: Thematic Module Icon Badge */}
+                <div
+                  className={`w-10 h-10 border flex items-center justify-center shrink-0 transition-all ${
+                    isModUnlocked
+                      ? isExpanded
+                        ? 'bg-white text-black border-white'
+                        : 'bg-neutral-950 text-white border-white/30'
+                      : 'bg-neutral-950 text-neutral-600 border-white/10'
+                  }`}
+                >
+                  <ModuleIcon className="w-5 h-5 stroke-[1.75]" />
+                </div>
+
+                {/* Center: Module Info & Titles */}
+                <div className="flex flex-col gap-1 flex-1 min-w-0">
                   <div className="flex items-center gap-2 font-mono text-[10px]">
                     <span className="font-black bg-white text-black px-1.5 py-0.5 tracking-wider uppercase">
                       МОДУЛЬ {module.number < 10 ? `0${module.number}` : module.number}
@@ -197,7 +263,7 @@ export const LessonPath: React.FC<LessonPathProps> = ({
                   </div>
                 </div>
 
-                {/* Expand Arrow & Icon */}
+                {/* Right: Expand Arrow / Lock */}
                 <div className="flex items-center gap-2 shrink-0">
                   {!isModUnlocked ? (
                     <div className="p-1.5 border border-white/15 text-neutral-500">
