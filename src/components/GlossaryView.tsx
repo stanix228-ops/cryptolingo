@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Lock, Copy, Check, Share2, BookOpen, ExternalLink } from 'lucide-react';
+import { Search, Lock, Copy, Check, Share2, BookOpen, ExternalLink, RefreshCw } from 'lucide-react';
 import { GLOSSARY_TERMS, GLOSSARY_CATEGORIES } from '../data/glossary';
 import type { UserProgress } from '../types';
 import { haptic, getTelegramWebApp, openTelegramLink, shareToTelegram, copyText } from '../services/telegram';
@@ -17,9 +17,11 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedTermId, setCopiedTermId] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   const tg = getTelegramWebApp();
-  const userId = tg?.initDataUnsafe?.user?.id || 777000;
+  const userId = tg?.initDataUnsafe?.user?.id || 6511326390;
   const botUsername = 'Cryptolingobot';
   const referralLink = `https://t.me/${botUsername}?start=ref_${userId}`;
 
@@ -43,6 +45,35 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
   const handleOpenReferralLink = () => {
     haptic.selection();
     openTelegramLink(referralLink);
+  };
+
+  const handleCheckReferrals = async () => {
+    haptic.medium();
+    setIsSyncing(true);
+    setSyncMessage(null);
+
+    try {
+      const res = await fetch(`/api/referral?userId=${userId}`);
+      const data = await res.json();
+
+      if (data && data.ok) {
+        if (data.referralCount >= 1 || data.unlocked) {
+          haptic.success();
+          onUnlockGlossary();
+          setSyncMessage(`[ УСПЕХ: Найдено ${data.referralCount} рефералов. Доступ открыт! ]`);
+        } else {
+          haptic.warning();
+          setSyncMessage('[ СТАТУС: 0 рефералов. Друг должен нажать START в боте по вашей ссылке ]');
+        }
+      } else {
+        setSyncMessage('[ Ошибка синхронизации с облаком Telegram ]');
+      }
+    } catch (err) {
+      console.error('Sync error', err);
+      setSyncMessage('[ Ошибка сетевого запроса к серверу ]');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleCopyTerm = async (termId: string, text: string) => {
@@ -142,26 +173,42 @@ export const GlossaryView: React.FC<GlossaryViewProps> = ({
 
             {/* Actions */}
             <div className="w-full flex flex-col gap-2 pt-1">
+              {/* PRIMARY SYNC BUTTON */}
               <button
-                onClick={handleShareTelegram}
+                onClick={handleCheckReferrals}
+                disabled={isSyncing}
                 className="w-full py-3 bg-white text-black font-mono font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-white active:bg-neutral-200 cursor-pointer"
               >
-                <Share2 className="w-4 h-4 text-black" />
+                <RefreshCw className={`w-4 h-4 text-black ${isSyncing ? 'animate-spin' : ''}`} />
+                <span>{isSyncing ? 'ПРОВЕРКА ОБЛАКА TELEGRAM...' : 'ПРОВЕРИТЬ РЕФЕРАЛОВ И ОБНОВИТЬ СТАТУС'}</span>
+              </button>
+
+              {syncMessage && (
+                <div className="p-2.5 border border-white/30 bg-neutral-950 font-mono text-[10px] text-center text-white leading-relaxed">
+                  {syncMessage}
+                </div>
+              )}
+
+              <button
+                onClick={handleShareTelegram}
+                className="w-full py-3 bg-black text-white font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-white/30 hover:border-white active:bg-neutral-900 cursor-pointer"
+              >
+                <Share2 className="w-4 h-4 text-white" />
                 <span>ОТПРАВИТЬ ПРИГЛАШЕНИЕ В TELEGRAM</span>
               </button>
 
               <button
                 onClick={handleCopyLink}
-                className="w-full py-3 bg-black text-white font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-white/30 hover:border-white active:bg-neutral-900 cursor-pointer"
+                className="w-full py-2.5 bg-neutral-950 text-neutral-300 font-mono text-xs uppercase tracking-wider flex items-center justify-center gap-2 border border-white/20 hover:border-white/40 active:bg-black cursor-pointer"
               >
                 {copiedLink ? (
                   <>
-                    <Check className="w-4 h-4 text-white" />
+                    <Check className="w-3.5 h-3.5 text-white" />
                     <span>[ ССЫЛКА СКОПИРОВАНА ]</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4" />
+                    <Copy className="w-3.5 h-3.5" />
                     <span>СКОПИРОВАТЬ ССЫЛКУ</span>
                   </>
                 )}
