@@ -5,6 +5,7 @@ import { LessonModal } from './components/LessonModal';
 import { SimulatorView } from './components/SimulatorView';
 import { GlossaryView } from './components/GlossaryView';
 import { ProfileView } from './components/ProfileView';
+import { GlossaryPromoModal } from './components/GlossaryPromoModal';
 import { BottomNav, type TabType } from './components/BottomNav';
 import { SplashReveal } from './components/SplashReveal';
 import { COURSE_MODULES } from './data/courses';
@@ -42,6 +43,7 @@ export const App: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<TabType>('lessons');
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
+  const [showGlossaryPromo, setShowGlossaryPromo] = useState<boolean>(false);
 
   useEffect(() => {
     initTelegramApp();
@@ -75,7 +77,6 @@ export const App: React.FC = () => {
       if (startParam.startsWith('ref_')) {
         const inviterId = startParam.replace('ref_', '');
         if (inviterId && inviterId !== String(currentUser.id)) {
-          // Register referral on backend API
           fetch(`/api/referral?action=register&inviterId=${inviterId}&friendId=${currentUser.id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -106,7 +107,7 @@ export const App: React.FC = () => {
           }
         })
         .catch(() => {
-          // Offline / Local fallback
+          // Offline fallback
         });
     }
   }, []);
@@ -139,15 +140,29 @@ export const App: React.FC = () => {
   const handleCompleteLesson = (score: number, stars: number) => {
     if (!activeLesson) return;
 
+    const completedLessonId = activeLesson.id;
+
     setProgress((prev) => {
       const newCompleted = {
         ...prev.completedLessons,
-        [activeLesson.id]: {
+        [completedLessonId]: {
           stars,
-          bestScore: Math.max(score, prev.completedLessons[activeLesson.id]?.bestScore || 0),
+          bestScore: Math.max(score, prev.completedLessons[completedLessonId]?.bestScore || 0),
           completedAt: new Date().toISOString(),
         },
       };
+
+      const count = Object.keys(newCompleted).length;
+      // Trigger promo after lesson 3 or when 3 lessons completed
+      if (count === 3 || completedLessonId === 'lesson-1-3') {
+        const seenPromo = localStorage.getItem('cryptolingo_seen_glossary_promo');
+        if (!seenPromo) {
+          localStorage.setItem('cryptolingo_seen_glossary_promo', 'true');
+          setTimeout(() => {
+            setShowGlossaryPromo(true);
+          }, 400);
+        }
+      }
 
       return {
         ...prev,
@@ -239,6 +254,17 @@ export const App: React.FC = () => {
           onClose={() => setActiveLesson(null)}
           onComplete={handleCompleteLesson}
           onLifeLost={handleLifeLost}
+        />
+      )}
+
+      {/* Milestone Modal: Glossary Promo after Lesson 3 */}
+      {showGlossaryPromo && (
+        <GlossaryPromoModal
+          onClose={() => setShowGlossaryPromo(false)}
+          onGoToGlossary={() => {
+            setShowGlossaryPromo(false);
+            setActiveTab('glossary');
+          }}
         />
       )}
 
